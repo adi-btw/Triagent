@@ -32,7 +32,12 @@ class ModeRetriever:
             raise RuntimeError("index missing")
         if mode == "vector":
             return [make_evidence("RB-DISTRACTOR-001#s1"), make_evidence("POL-SEV-001#s1")][:k]
-        case = next((c for inc, c in self.by_incident.items() if query.startswith(inc)), None)
+        # Ambiguous cases only "match" once the clarification is in the query.
+        case = next(
+            (c for inc, c in self.by_incident.items()
+             if query.startswith(inc) and (c.clarification is None or c.clarification in query)),
+            None,
+        )
         ids = case.expected_chunk_ids if case else []
         return [make_evidence(cid) for cid in ids][:k]
 
