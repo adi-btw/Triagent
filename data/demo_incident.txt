@@ -1,0 +1,7 @@
+checkout-api returning 500s since ~14:05 UTC, roughly 18% of requests.
+We deployed v2.31.0 at 13:58 and the HPA scaled checkout-api from 6 to 14 pods.
+
+2026-11-09T14:06:12Z ERROR checkout-api  pool.acquire timed out after 5000ms
+2026-11-09T14:06:12Z ERROR checkout-api  psycopg.OperationalError: connection failed:
+                     FATAL: sorry, too many clients already
+2026-11-09T14:06:13Z WARN  orders-db     connections active=197 max_connections=200
