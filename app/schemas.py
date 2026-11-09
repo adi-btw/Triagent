@@ -5,7 +5,7 @@ Chunk ID rule (used by the chunker, the corpus, and the eval set):
     Text between the front-matter and the first `## ` heading is not a chunk.
 """
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -46,7 +46,7 @@ class Evidence(BaseModel):
 # --------------------------------------------------------------------------- report
 
 
-class Severity(str, Enum):
+class Severity(StrEnum):
     SEV1 = "SEV1"
     SEV2 = "SEV2"
     SEV3 = "SEV3"

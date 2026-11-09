@@ -230,3 +230,23 @@ whose IDs disappeared. A second run on an unchanged corpus embeds nothing.
 **What breaks if you change the embedding model?** Old vectors are in a different space,
 so similarities become garbage silently. The memory index records the embedder and
 refuses to load under another one; `--rebuild` re-embeds.
+
+## Update: rankings on the full 26-document corpus
+
+Once the corpus grew from 4 to 26 documents (79 chunks), the demo incident's top 5 changed:
+
+| # | vector | keyword (BM25) | hybrid (RRF) |
+|---|---|---|---|
+| 1 | INC-2025-014#s1 (.851) | INC-2026-011#s2 | INC-2026-011#s2 |
+| 2 | INC-2025-014#s2 (.818) | RB-DB-001#s1 | INC-2025-014#s2 |
+| 3 | INC-2026-011#s2 (.795) | RB-DB-004#s1 | INC-2025-014#s1 |
+| 4 | RB-PAY-001#s1 (.773) | INC-2025-014#s2 | RB-DB-001#s1 |
+| 5 | INC-2026-011#s1 (.770) | INC-2026-015#s1 | RB-DB-004#s1 |
+
+**Vector-only search drops the connection-exhaustion runbook (RB-DB-001) out of the top 5.**
+Near-miss documents win instead: a checkout outage caused by a table lock, and payment-provider
+timeouts. They share "checkout", "500s" and "timed out" with the incident. BM25 matches the
+exact strings (`too many clients`, `max_connections`), and RRF fusion gets RB-DB-001 back.
+`tests/test_retrieval_demo.py` records this as a strict `xfail` for vector mode, so the result
+can't silently change. That's one incident, though. `eval/` measures recall across all
+cases before any default is changed.

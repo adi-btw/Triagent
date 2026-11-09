@@ -37,7 +37,20 @@ def _best_rank(hits: list[Evidence], doc_id: str) -> int:
     return next((i for i, h in enumerate(hits, start=1) if h.doc_id == doc_id), 10**9)
 
 
-@pytest.mark.parametrize("mode", ["vector", "keyword", "hybrid"])
+# Measured finding, kept visible on purpose: on the full 26-doc corpus, pure vector search
+# ranks two near-miss docs (INC-2026-011 table-lock outage, RB-PAY-001 provider timeouts)
+# above RB-DB-001, so the connection-exhaustion runbook falls out of the top 5. BM25 matches
+# the exact strings ("too many clients", max_connections) and hybrid (RRF) recovers it.
+# strict=True: if a corpus/embedder change fixes vector mode, this test fails and we update it.
+VECTOR_MISSES_RUNBOOK = pytest.mark.xfail(
+    strict=True,
+    reason="vector-only misses RB-DB-001 in top 5 on the full corpus; see docs/retrieval.md",
+)
+
+
+@pytest.mark.parametrize(
+    "mode", [pytest.param("vector", marks=VECTOR_MISSES_RUNBOOK), "keyword", "hybrid"]
+)
 def test_demo_incident_top5_contains_runbook_and_past_incident(
     retriever: SearchRetriever, mode: str
 ) -> None:
