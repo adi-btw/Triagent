@@ -4,10 +4,7 @@ import pytest
 
 from app.ingest.loader import CorpusError, load_corpus, parse_document
 
-GOOD = (
-    "---\ndoc_id: RB-X-001\ntype: runbook\ntitle: Example\nservices: [a, b]\n---\n"
-    "## One\nbody\n"
-)
+GOOD = "---\ndoc_id: RB-X-001\ntype: runbook\ntitle: Example\nservices: [a, b]\n---\n## One\nbody\n"
 
 
 def test_parse_maps_type_and_keeps_extra_keys_as_metadata() -> None:
