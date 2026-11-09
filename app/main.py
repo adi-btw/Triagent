@@ -4,12 +4,12 @@ The route is a thin adapter: parse ``TriageRequest``, call ``run_triage``, map t
 result to a status code. All triage logic lives in ``app.triage``.
 
 Status codes:
-    200  status "ok" or "needs_clarification"
+    200  status "ok" or "needs_clarification" (agent mode: ``clarifying_question`` is
+         set; resubmit the same incident with ``clarification``)
     422  status "invalid_output": the body is the *full* TriageResponse (report as
          written, violations, trace), so a client can show why it was rejected.
          (FastAPI also uses 422 for a malformed *request*; that body is {"detail": [...]}.
          Tell them apart by the presence of "status".)
-    501  mode "agent" before stage 2 exists
     502  the LLM provider failed after retries
     503  the retriever or LLM could not be built (no index, no API key)
 
@@ -22,7 +22,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -35,7 +35,7 @@ from app.deps import (
 from app.llm.errors import LLMCallError
 from app.retrieval.base import Retriever
 from app.schemas import TriageRequest, TriageResponse
-from app.triage.service import AgentNotAvailable, run_triage
+from app.triage.service import run_triage
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -62,7 +62,6 @@ def _llm_failed(_: Request, exc: LLMCallError) -> JSONResponse:
     response_model=TriageResponse,
     responses={
         422: {"model": TriageResponse, "description": "Report failed validation"},
-        501: {"description": "Mode not implemented yet"},
         502: {"description": "LLM provider failed"},
         503: {"description": "Retriever or LLM not configured"},
     },
@@ -76,10 +75,7 @@ def triage(
     retriever: Retriever | None = (
         None if request.mode == "no_retrieval" else retriever_provider()
     )
-    try:
-        response = run_triage(request, retriever=retriever, llm=llm, settings=settings)
-    except AgentNotAvailable as exc:
-        raise HTTPException(status_code=501, detail=str(exc)) from exc
+    response = run_triage(request, retriever=retriever, llm=llm, settings=settings)
     if response.status == "invalid_output":
         return JSONResponse(status_code=422, content=response.model_dump(mode="json"))
     return response
@@ -111,6 +107,7 @@ def health(settings: SettingsDep, retriever_provider: RetrieverProviderDep) -> d
 
 
 # Mounted last so the API routes above take precedence over "/" (Starlette matches in
-# order). Conditional, so the API works before the UI exists.
+# order): /triage, /health, /docs and /openapi.json are never shadowed. Conditional, so
+# the API works before the UI exists. The demo UI lives in app/static/.
 if (STATIC_DIR / "index.html").exists():
     app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")

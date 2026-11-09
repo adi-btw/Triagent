@@ -4,7 +4,7 @@ from app.config import Settings
 from app.llm.prompts import NO_RETRIEVAL_SYSTEM, PROMPT_VERSION, TRIAGE_SYSTEM
 from app.schemas import TriageReport, TriageRequest
 from app.triage.pipeline import run_no_retrieval, run_rag
-from app.triage.service import AgentNotAvailable, run_triage
+from app.triage.service import run_triage
 from tests.fakes import DEMO_EVIDENCE, FakeRetriever, ScriptedLLM, valid_report
 
 INCIDENT = "checkout-api returning 500s, FATAL: sorry, too many clients already"
@@ -97,7 +97,11 @@ def test_service_appends_clarification(settings):
     assert "Additional information from reporter: error rate is 18%" in llm.calls[0].user
 
 
-def test_service_agent_mode_is_not_available(settings):
-    with pytest.raises(AgentNotAvailable):
-        run_triage(TriageRequest(incident=INCIDENT, mode="agent"),
-                   retriever=FakeRetriever(), llm=ScriptedLLM([]), settings=settings)
+def test_service_agent_mode_runs_the_agent(settings):
+    # Detailed agent behaviour lives in tests/test_agent.py; this checks the dispatch.
+    decision = {"action": "draft_report", "rationale": "ok", "rewritten_query": None,
+                "clarifying_question": None}
+    resp = run_triage(TriageRequest(incident=INCIDENT, mode="agent"),
+                      retriever=FakeRetriever(), llm=ScriptedLLM([decision, valid_report()]),
+                      settings=settings)
+    assert resp.status == "ok" and resp.trace.mode == "agent"
