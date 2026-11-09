@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Incident Triage Assistant</title>
+  <meta name="description" content="Paste an incident; get a cited triage report and see every step the agent took.">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>Incident Triage Assistant</h1>
+    <p class="muted">Paste an error report or log excerpt. The report cites retrieved runbooks and past
+      incidents; code checks every citation. In agent mode you can see each step the model chose.</p>
+  </header>
+
+  <main>
+    <form id="triage-form" class="card" novalidate>
+      <label for="incident" class="label">Incident report</label>
+      <textarea id="incident" name="incident" rows="10" minlength="10" maxlength="8000" required
+                aria-describedby="incident-help"
+                placeholder="checkout-api returning 500s since 14:05 UTC..."></textarea>
+      <p id="incident-help" class="muted small">10 to 8000 characters. Log lines help.</p>
+
+      <div class="row">
+        <button type="button" id="load-demo" class="secondary">Load demo incident</button>
+        <button type="button" id="load-vague" class="secondary">Load vague incident</button>
+      </div>
+
+      <fieldset class="modes">
+        <legend class="label">Mode</legend>
+        <label><input type="radio" name="mode" value="no_retrieval"> No retrieval <span class="muted small">(baseline)</span></label>
+        <label><input type="radio" name="mode" value="rag"> RAG <span class="muted small">(fixed steps)</span></label>
+        <label><input type="radio" name="mode" value="agent" checked> Agent <span class="muted small">(model picks steps)</span></label>
+      </fieldset>
+
+      <button type="submit" id="submit" class="primary">Triage</button>
+    </form>
+
+    <div id="error" class="card error" role="alert" hidden></div>
+
+    <section id="clarify" class="card clarify" hidden aria-labelledby="clarify-title">
+      <h2 id="clarify-title">The assistant needs more information</h2>
+      <p id="clarify-question" class="question"></p>
+      <form id="clarify-form" novalidate>
+        <label for="clarification" class="label">Your answer</label>
+        <textarea id="clarification" rows="3" maxlength="2000" required></textarea>
+        <button type="submit" class="primary">Send answer and triage</button>
+      </form>
+    </section>
+
+    <section id="result" class="card" hidden aria-live="polite" aria-labelledby="result-title">
+      <div class="result-head">
+        <h2 id="result-title">Result</h2>
+        <span id="status-badge" class="badge"></span>
+        <span id="severity" class="badge severity"></span>
+      </div>
+
+      <div id="report-body">
+        <p id="summary" class="summary"></p>
+        <p id="abstain" class="note" hidden>The assistant reports <strong>insufficient evidence</strong> for a grounded diagnosis.</p>
+
+        <h3>Likely causes</h3>
+        <ul id="causes" class="items"></ul>
+
+        <h3>Next steps</h3>
+        <ol id="steps" class="items"></ol>
+
+        <div id="missing-wrap" hidden>
+          <h3>Missing information</h3>
+          <ul id="missing"></ul>
+        </div>
+      </div>
+
+      <div id="violations-wrap" class="violations" hidden>
+        <h3>Validation failed</h3>
+        <p class="muted small">The report below was rejected by the validator and is shown only for inspection.</p>
+        <ul id="violations"></ul>
+      </div>
+
+      <h3>Steps</h3>
+      <ol id="timeline" class="timeline"></ol>
+
+      <h3>Evidence</h3>
+      <p class="muted small">Click a citation chip to open its passage. Red chips cite ids that were not retrieved.</p>
+      <div id="evidence"></div>
+
+      <p id="footer" class="footer muted small"></p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
