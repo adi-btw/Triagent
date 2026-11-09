@@ -10,8 +10,8 @@ import pytest
 
 from app.config import Settings
 from app.schemas import Trace, TriageReport, TriageRequest, TriageResponse
+from app.store.base import IndexNotFoundError
 from app.triage import service
-from app.triage.service import AgentNotAvailable
 from eval import run_eval
 from eval.cases import EvalCase, load_cases
 from eval.fake_retriever import KeywordOverlapRetriever, load_corpus_chunks
@@ -102,11 +102,19 @@ def test_rag_runs_ambiguous_case_on_incident_alone(settings):
 # --------------------------------------------------------------------------- errors
 
 
-def test_agent_not_available_is_recorded_as_error(settings):
-    res = run_eval.run_case(_case("case-001"), "agent", retriever=FakeRetriever(),
+def test_retriever_exception_is_recorded_as_error(settings):
+    boom = FakeRetriever(error=ConnectionError("index unavailable"))
+    res = run_eval.run_case(_case("case-001"), "agent", retriever=boom,
                             llm=DemoLLM(), settings=settings)
-    assert res.status == "error" and res.error_type == AgentNotAvailable.__name__
+    assert res.status == "error" and res.error_type == "ConnectionError"
     assert res.response is None and res.latency_source == "wall"
+
+
+def test_agent_clarifies_ambiguous_case_then_is_scored(settings):
+    # DemoLLM asks a question for short, digit-free incidents like case-028.
+    res = run_eval.run_case(_case("case-028"), "agent", retriever=FakeRetriever(),
+                            llm=DemoLLM(), settings=settings)
+    assert res.asked_clarification and res.status == "ok"
 
 
 def test_llm_exception_is_recorded(settings):
@@ -133,23 +141,23 @@ def test_main_end_to_end_writes_parseable_files(tmp_path, settings):
     lines = (run_dirs[0] / "raw.jsonl").read_text(encoding="utf-8").splitlines()
     results = [CaseResult.model_validate_json(line) for line in lines]
     assert len(results) == 9  # 3 cases x 3 modes, none dropped
-    agent = [r for r in results if r.mode == "agent"]
-    assert all(r.status == "error" and r.error_type == "AgentNotAvailable" for r in agent)
-    assert all(r.status != "error" for r in results if r.mode != "agent")
+    assert all(r.status != "error" for r in results), [r.error_message for r in results]
+    agent = {r.case_id: r for r in results if r.mode == "agent"}
+    assert agent["case-028"].asked_clarification  # vague case -> question -> resubmit
     # Judge ran on reports (DemoLLM as judge returns no verdicts -> unjudged, not crash).
     assert any(r.judged for r in results if r.mode == "rag")
 
     summary = json.loads((run_dirs[0] / "summary.json").read_text(encoding="utf-8"))
     meta = summary["metadata"]
     assert meta["n_cases"] == 3 and meta["smoke"] is True
-    assert meta["prompt_versions"] == ["triage-v1"]
+    assert "triage-v1" in meta["prompt_versions"]
     assert len(meta["cases_sha256"]) == 64 and len(meta["corpus_sha256"]) == 64
-    assert summary["metrics"]["by_mode"]["agent"]["validity"]["status"]["error"]["k"] == 3
+    assert summary["metrics"]["by_mode"]["agent"]["validity"]["status"]["error"]["k"] == 0
 
     report = (tmp_path / f"{run_dirs[0].name}.md").read_text(encoding="utf-8")
     assert report == (tmp_path / "latest.md").read_text(encoding="utf-8")
     assert "SMOKE TEST" in report and "| Metric | no_retrieval | rag | agent |" in report
-    assert "AgentNotAvailable" in report and "case-028" in report
+    assert "AgentNotAvailable" not in report
 
 
 def test_main_bad_case_id_is_setup_error(tmp_path, settings):
@@ -158,12 +166,16 @@ def test_main_bad_case_id_is_setup_error(tmp_path, settings):
     assert code == 2
 
 
-def test_main_records_retriever_build_failure_per_case(tmp_path, settings):
+def test_main_records_retriever_build_failure_per_case(tmp_path, settings, monkeypatch):
+    def no_index(_settings):
+        raise IndexNotFoundError("no index; run: python -m scripts.ingest")
+
+    monkeypatch.setattr(run_eval, "build_retriever", no_index)
     code = run_eval.main(["--modes", "rag", "--limit", "2", "--no-judge",
                           "--out", str(tmp_path)], settings=settings, llm=DemoLLM())
-    assert code == 0  # build_retriever is a stub on this branch -> every rag unit errors
+    assert code == 0  # retriever can't be built -> every rag unit is recorded as an error
     summary = json.loads(next((tmp_path / "runs").glob("*/summary.json")).read_text())
-    assert summary["metadata"]["retriever_build_error"].startswith("NotImplementedError")
+    assert summary["metadata"]["retriever_build_error"].startswith("IndexNotFoundError")
     assert summary["metrics"]["by_mode"]["rag"]["validity"]["status"]["error"]["k"] == 2
 
 

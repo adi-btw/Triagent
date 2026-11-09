@@ -101,6 +101,7 @@ def test_main_writes_markdown_and_summary(tmp_path):
 
 
 def test_main_without_index_is_setup_error(tmp_path):
-    # build_retriever is a stub on this branch; on main it fails until ingest has run.
-    code = R.main(["--out", str(tmp_path)], settings=Settings(_env_file=None))
+    # Point at an index path that doesn't exist: build_retriever fails fast -> exit code 2.
+    settings = Settings(_env_file=None, index_path=tmp_path / "missing.json")
+    code = R.main(["--out", str(tmp_path)], settings=settings)
     assert code == 2

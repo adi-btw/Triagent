@@ -140,7 +140,7 @@ that cannot ask. Also note the scripted answers are cleaner than real users' rep
 ## 7. Reproduce
 
 Prerequisites: `.env` with `GEMINI_API_KEY`, the index built (`python -m scripts.ingest`),
-and the agent mode merged (until then the `agent` column is all `AgentNotAvailable` errors,
+and the agent mode merged (before stage 2 merged, the `agent` column was all `AgentNotAvailable` errors,
 which the report shows).
 
 PowerShell (Windows):
