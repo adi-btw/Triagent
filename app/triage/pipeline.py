@@ -7,7 +7,8 @@ RAG is three fixed steps, always in this order, each timed and recorded as a
     generate (system prompt + evidence + incident -> JSON report)
     validate (deterministic: schema, citation allow-list, abstention consistency)
 
-There is no loop and no model-chosen control flow here; that is stage 2 (agent).
+There is no loop and no model-chosen control flow here; that is stage 2
+(``app.agent.workflow``), which reuses ``generate_report`` and ``validate_output``.
 The no-retrieval baseline skips retrieval and exists to *measure* what retrieval buys:
 the eval compares the two on the same incidents.
 
@@ -44,7 +45,8 @@ from app.schemas import (
 from app.triage.validate import validate_report
 
 
-def _ms_since(start: float) -> float:
+def ms_since(start: float) -> float:
+    """Milliseconds elapsed since a ``time.perf_counter()`` reading, rounded for the trace."""
     return round((time.perf_counter() - start) * 1000, 2)
 
 
@@ -56,7 +58,7 @@ def run_rag(
 
     t0 = time.perf_counter()
     evidence = retriever.retrieve(incident, k=settings.top_k, mode=settings.retrieval_mode)
-    retrieval_ms = _ms_since(t0)
+    retrieval_ms = ms_since(t0)
     retrieve_step = TraceStep(
         name="retrieve",
         latency_ms=retrieval_ms,
@@ -67,7 +69,7 @@ def run_rag(
         },
     )
 
-    result, generate_step = _generate(
+    result, generate_step = generate_report(
         llm,
         system=TRIAGE_SYSTEM,
         user=build_rag_user_prompt(incident, evidence),
@@ -75,7 +77,9 @@ def run_rag(
     )
 
     evidence_ids = {e.chunk_id for e in evidence}
-    report, violations, validate_step = _validate(result, evidence_ids, require_citations=True)
+    report, violations, validate_step = validate_output(
+        result, evidence_ids, require_citations=True
+    )
 
     trace = Trace(
         mode="rag",
@@ -91,7 +95,7 @@ def run_rag(
             "retrieval": retrieval_ms,
             "generation": generate_step.latency_ms,
             "validation": validate_step.latency_ms,
-            "total": _ms_since(t_total),
+            "total": ms_since(t_total),
         },
         llm_calls=1,
     )
@@ -101,14 +105,14 @@ def run_rag(
 def run_no_retrieval(incident: str, *, llm: LLMClient, settings: Settings) -> TriageResponse:
     """Baseline: same output schema, no documents. Citations must be empty."""
     t_total = time.perf_counter()
-    result, generate_step = _generate(
+    result, generate_step = generate_report(
         llm,
         system=NO_RETRIEVAL_SYSTEM,
         user=build_no_retrieval_user_prompt(incident),
         settings=settings,
     )
     # Empty allow-list: every id the baseline cites is, by definition, invented.
-    report, violations, validate_step = _validate(result, set(), require_citations=False)
+    report, violations, validate_step = validate_output(result, set(), require_citations=False)
     trace = Trace(
         mode="no_retrieval",
         model=llm.model_name,
@@ -118,23 +122,28 @@ def run_no_retrieval(incident: str, *, llm: LLMClient, settings: Settings) -> Tr
             "retrieval": 0.0,
             "generation": generate_step.latency_ms,
             "validation": validate_step.latency_ms,
-            "total": _ms_since(t_total),
+            "total": ms_since(t_total),
         },
         llm_calls=1,
     )
     return _response(report, violations, [], trace)
 
 
-def _generate(
-    llm: LLMClient, *, system: str, user: str, settings: Settings
+def generate_report(
+    llm: LLMClient, *, system: str, user: str, settings: Settings, step_name: str = "generate"
 ) -> tuple[LLMResult, TraceStep]:
+    """One timed ``TriageReport`` call. Public so the agent reuses it for draft/repair.
+
+    ``step_name`` lets the agent label the step "draft" or "repair" in its trace while
+    sharing exactly the same call and trace detail as RAG's "generate".
+    """
     t0 = time.perf_counter()
     result = llm.generate_json(
         system=system, user=user, schema=TriageReport, temperature=settings.llm_temperature
     )
     step = TraceStep(
-        name="generate",
-        latency_ms=_ms_since(t0),
+        name=step_name,
+        latency_ms=ms_since(t0),
         detail={
             "prompt_version": PROMPT_VERSION,
             "model": result.model,
@@ -147,16 +156,17 @@ def _generate(
     return result, step
 
 
-def _validate(
+def validate_output(
     result: LLMResult, evidence_ids: set[str], *, require_citations: bool
 ) -> tuple[TriageReport | None, list[Violation], TraceStep]:
+    """Timed ``validate_report`` on an LLM result. Public so the agent reuses it."""
     t0 = time.perf_counter()
     # Prefer the client's parse; fall back to raw text so the validator can explain why.
     raw: dict[str, Any] | str = result.parsed if result.parsed is not None else result.text
     report, violations = validate_report(raw, evidence_ids, require_citations=require_citations)
     step = TraceStep(
         name="validate",
-        latency_ms=_ms_since(t0),
+        latency_ms=ms_since(t0),
         detail={
             "require_citations": require_citations,
             "allowed_ids": sorted(evidence_ids),

@@ -58,9 +58,10 @@ def test_invalid_output_returns_422_with_full_response(client):
     assert body["report"] is not None and body["evidence"]
 
 
-def test_agent_mode_returns_501(client):
+def test_agent_mode_is_served(client):
+    # Was 501 before stage 2; agent API behaviour is in tests/test_agent_api.py.
     resp = client.post("/triage", json={"incident": INCIDENT, "mode": "agent"})
-    assert resp.status_code == 501
+    assert resp.status_code == 200 and resp.json()["trace"]["mode"] == "agent"
 
 
 def test_retriever_build_failure_returns_503(client):

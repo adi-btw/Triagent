@@ -19,6 +19,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from app.agent.schemas import AgentDecision
 from app.llm.base import LLMResult
 from app.schemas import TriageReport
 
@@ -100,6 +101,11 @@ class ScriptedLLM:
 # --------------------------------------------------------------------------- DemoLLM
 
 _EVIDENCE_TAG = re.compile(r'<evidence id="([^"]+)" title="([^"]*)" heading="([^"]*)">')
+_ALLOWED_ACTIONS = re.compile(r"^Allowed actions: (.+)$", re.MULTILINE)
+_INCIDENT_TAG = re.compile(r"<incident>\n(.*?)\n</incident>", re.DOTALL)
+# A short incident with no numbers at all (no status code, rate, timestamp) is treated as
+# "too vague to triage" by the demo agent.
+_VAGUE_INCIDENT_CHARS = 100
 
 
 class DemoLLM:
@@ -111,9 +117,14 @@ class DemoLLM:
     there is no evidence. It does not understand the incident; the summary is labelled
     "[fake LLM]" so nobody mistakes it for analysis.
 
-    Limitation: for any other schema (e.g. the agent's decision schema later) it returns
-    a minimal instance built from field defaults / first enum or Literal option. That
-    is enough to exercise plumbing, not to test behaviour; use ``ScriptedLLM`` for that.
+    For ``AgentDecision`` it uses one transparent heuristic so the demo UI can show both
+    outcomes offline: a short incident with no numbers (e.g. "Payments seem flaky?") gets a
+    clarifying question when that action is allowed; everything else gets
+    ``draft_report``. It never rewrites queries.
+
+    Limitation: for any other schema it returns a minimal instance built from field
+    defaults / first enum or Literal option. That is enough to exercise plumbing, not to
+    test behaviour; use ``ScriptedLLM`` for that.
     """
 
     model_name = "fake-demo"
@@ -129,11 +140,36 @@ class DemoLLM:
         start = time.perf_counter()
         if schema is TriageReport:
             reply: dict[str, Any] = self._triage_report(user)
+        elif schema is AgentDecision:
+            reply = self._agent_decision(user)
         else:
             reply = schema.model_validate(minimal_instance(schema)).model_dump(mode="json")
         result = _to_result(reply, self.model_name)
         result.latency_ms = (time.perf_counter() - start) * 1000
         return result
+
+    @staticmethod
+    def _agent_decision(user: str) -> dict[str, Any]:
+        allowed_match = _ALLOWED_ACTIONS.search(user)
+        allowed = allowed_match.group(1).split(", ") if allowed_match else []
+        incident_match = _INCIDENT_TAG.search(user)
+        incident = incident_match.group(1).strip() if incident_match else ""
+        vague = len(incident) < _VAGUE_INCIDENT_CHARS and not any(c.isdigit() for c in incident)
+        if "ask_clarifying_question" in allowed and vague:
+            return {
+                "action": "ask_clarifying_question",
+                "rationale": "[fake LLM] The report is too short to identify a service or "
+                "symptom.",
+                "rewritten_query": None,
+                "clarifying_question": "Which service is affected, what errors or log "
+                "lines do you see, and roughly what error rate or latency?",
+            }
+        return {
+            "action": "draft_report",
+            "rationale": "[fake LLM] Evidence was retrieved, so draft the report.",
+            "rewritten_query": None,
+            "clarifying_question": None,
+        }
 
     @staticmethod
     def _triage_report(user: str) -> dict[str, Any]:

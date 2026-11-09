@@ -6,15 +6,12 @@ behaviour, and the route stays a thin HTTP adapter.
 
 from __future__ import annotations
 
+from app.agent.workflow import run_agent
 from app.config import Settings
 from app.llm.base import LLMClient
 from app.retrieval.base import Retriever
 from app.schemas import TriageRequest, TriageResponse
 from app.triage.pipeline import run_no_retrieval, run_rag
-
-
-class AgentNotAvailable(RuntimeError):
-    """Raised for mode="agent" until stage 2 lands (the API maps it to HTTP 501)."""
 
 
 def incident_text(request: TriageRequest) -> str:
@@ -36,16 +33,24 @@ def run_triage(
     """Run the pipeline for ``request.mode``.
 
     ``retriever`` may be None for ``no_retrieval`` (so the baseline works without an
-    index); RAG requires one.
+    index); RAG and agent require one.
+
+    For the agent, ``clarification_given`` is what enforces "one clarifying round-trip":
+    a request that already carries the reporter's answer may not ask again.
     """
     incident = incident_text(request)
     if request.mode == "no_retrieval":
         return run_no_retrieval(incident, llm=llm, settings=settings)
+    if retriever is None:
+        raise ValueError(f"mode={request.mode!r} needs a retriever")
     if request.mode == "rag":
-        if retriever is None:
-            raise ValueError("mode='rag' needs a retriever")
         return run_rag(incident, retriever=retriever, llm=llm, settings=settings)
     if request.mode == "agent":
-        # Stage 2 seam: replace this line with the agent loop.
-        raise AgentNotAvailable("mode='agent' is not implemented yet (stage 2)")
+        return run_agent(
+            incident,
+            retriever=retriever,
+            llm=llm,
+            settings=settings,
+            clarification_given=bool(request.clarification and request.clarification.strip()),
+        )
     raise ValueError(f"unknown mode: {request.mode!r}")
