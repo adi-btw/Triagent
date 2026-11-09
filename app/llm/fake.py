@@ -103,7 +103,8 @@ class ScriptedLLM:
 _EVIDENCE_TAG = re.compile(r'<evidence id="([^"]+)" title="([^"]*)" heading="([^"]*)">')
 _ALLOWED_ACTIONS = re.compile(r"^Allowed actions: (.+)$", re.MULTILINE)
 _INCIDENT_TAG = re.compile(r"<incident>\n(.*?)\n</incident>", re.DOTALL)
-# Below this length an incident is treated as "too vague to triage" by the demo agent.
+# A short incident with no numbers at all (no status code, rate, timestamp) is treated as
+# "too vague to triage" by the demo agent.
 _VAGUE_INCIDENT_CHARS = 100
 
 
@@ -117,7 +118,7 @@ class DemoLLM:
     "[fake LLM]" so nobody mistakes it for analysis.
 
     For ``AgentDecision`` it uses one transparent heuristic so the demo UI can show both
-    outcomes offline: a very short incident (e.g. "Payments seem flaky?") gets a
+    outcomes offline: a short incident with no numbers (e.g. "Payments seem flaky?") gets a
     clarifying question when that action is allowed; everything else gets
     ``draft_report``. It never rewrites queries.
 
@@ -153,7 +154,8 @@ class DemoLLM:
         allowed = allowed_match.group(1).split(", ") if allowed_match else []
         incident_match = _INCIDENT_TAG.search(user)
         incident = incident_match.group(1).strip() if incident_match else ""
-        if "ask_clarifying_question" in allowed and len(incident) < _VAGUE_INCIDENT_CHARS:
+        vague = len(incident) < _VAGUE_INCIDENT_CHARS and not any(c.isdigit() for c in incident)
+        if "ask_clarifying_question" in allowed and vague:
             return {
                 "action": "ask_clarifying_question",
                 "rationale": "[fake LLM] The report is too short to identify a service or "
