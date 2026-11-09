@@ -53,21 +53,29 @@ class Severity(str, Enum):
     SEV4 = "SEV4"
 
 
+# The schema describes *shape*. Grounding policy ("every cause cites >= 1 retrieved chunk")
+# is enforced in app/triage/validate.py, because the no_retrieval baseline has nothing to
+# cite and must still produce a parseable report.
+
+
 class Cause(BaseModel):
     description: str
     confidence: Literal["high", "medium", "low"]
-    citations: list[str] = Field(min_length=1)
+    citations: list[str] = Field(default_factory=list)
 
 
 class NextStep(BaseModel):
     action: str
-    citations: list[str] = Field(min_length=1)
+    citations: list[str] = Field(default_factory=list)
 
 
 class TriageReport(BaseModel):
     summary: str
+    # Severity can be known even when causes are not (e.g. "checkout 30% errors" with no
+    # matching runbook). Rules (validator): severity None => insufficient_evidence;
+    # insufficient_evidence False => at least one likely cause.
     severity: Severity | None = Field(
-        description="None only when insufficient_evidence is true"
+        description="Null only when the incident lacks the facts the severity policy needs"
     )
     severity_citations: list[str] = Field(default_factory=list)
     likely_causes: list[Cause] = Field(default_factory=list)
