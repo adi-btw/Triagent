@@ -20,8 +20,16 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6"]
 
-# The repo is run from its root (python -m scripts.ingest, uvicorn app.main:app),
-# so it is not installed as a package. pytest puts the repo root on sys.path.
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+# Commands run from the repo root (python -m scripts.ingest, uvicorn app.main:app).
+# `pip install -e ".[dev]"` installs the dependencies; the package list stays explicit
+# because data/, docs/ and migrations/ are not Python packages.
+[tool.setuptools.packages.find]
+include = ["app*", "eval*", "scripts*"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
