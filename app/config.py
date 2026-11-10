@@ -79,6 +79,11 @@ class Settings(BaseSettings):
     alert_dedupe_ttl_s: float = 3600.0  # drop Alertmanager re-sends of the same group
     integration_triages_per_hour: int = 60  # caps LLM calls an alert storm can cause
 
+    # Reviewer feedback (app/feedback.py). Stores incident text; turn off where it must not.
+    feedback_enabled: bool = True
+    feedback_db_path: Path = Path(".cache/feedback.sqlite3")
+    feedback_max_triages: int = 20_000
+
     # Agent limits (enforced by code, never by the model)
     agent_max_steps: int = 4
     agent_max_query_rewrites: int = 1

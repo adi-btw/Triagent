@@ -190,6 +190,39 @@
           <ul id="missing"></ul>
         </div>
 
+        <article id="feedback-card" class="card feedback" hidden aria-labelledby="feedback-title">
+          <div class="card-title-row">
+            <h3 id="feedback-title" class="card-title">Was this triage right?</h3>
+            <span id="feedback-status" class="muted small" role="status"></span>
+          </div>
+          <div class="feedback-actions" role="group" aria-label="Rate this triage">
+            <button type="button" id="fb-up" class="pill-btn" aria-pressed="false">Looks right</button>
+            <button type="button" id="fb-down" class="pill-btn" aria-pressed="false">Something&rsquo;s wrong</button>
+          </div>
+          <form id="fb-form" class="feedback-form" novalidate hidden>
+            <label class="field">
+              <span>Correct severity</span>
+              <select id="fb-severity">
+                <option value="">Severity was right</option>
+                <option>SEV1</option><option>SEV2</option><option>SEV3</option><option>SEV4</option>
+              </select>
+            </label>
+            <label class="check"><input type="checkbox" id="fb-abstain">
+              It should have said the runbooks don&rsquo;t cover this</label>
+            <fieldset id="fb-cites-wrap" class="field" hidden>
+              <legend>Citations that don&rsquo;t support their claim</legend>
+              <div id="fb-cites" class="fb-cites"></div>
+            </fieldset>
+            <label class="field">
+              <span>What was wrong? <span class="muted">(optional)</span></span>
+              <textarea id="fb-comment" rows="2" maxlength="1000"></textarea>
+            </label>
+            <button type="submit" id="fb-send" class="btn-primary">Send feedback</button>
+          </form>
+          <p class="muted small feedback-note">Feedback is stored with the incident and becomes
+            candidate eval cases after review.</p>
+        </article>
+
         <article class="card">
           <div class="card-title-row">
             <h3 class="card-title">Pipeline trace</h3>

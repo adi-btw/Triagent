@@ -557,3 +557,26 @@ li.empty { background: transparent !important; border-style: dashed !important; 
 .live-steps li { animation: step-in 0.18s ease-out; }
 @keyframes step-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .live-steps li { animation: none; } }
+
+/* Reviewer feedback (POST /feedback) */
+.feedback-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.feedback-actions .pill-btn { padding: 6px 14px; font-size: 0.85rem; }
+.feedback-actions .pill-btn[aria-pressed="true"] {
+  border-color: var(--accent); color: var(--accent); background: var(--accent-soft);
+}
+.feedback-form { display: grid; gap: 14px; margin-top: 16px; }
+.feedback-form .field { display: grid; gap: 6px; border: 0; padding: 0; margin: 0; min-width: 0; font-size: 0.88rem; font-weight: 600; }
+.feedback-form legend { padding: 0; margin-bottom: 6px; }
+.feedback-form select, .feedback-form textarea {
+  width: 100%; font: inherit; font-weight: 400; color: var(--text); background: var(--surface-2);
+  border: 1px solid var(--border-strong); border-radius: 10px; padding: 8px 10px;
+}
+.feedback-form select:focus, .feedback-form textarea:focus {
+  outline: 0; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.feedback-form .check { display: flex; gap: 8px; align-items: flex-start; font-size: 0.88rem; }
+.feedback-form .check input { margin-top: 3px; accent-color: var(--accent); }
+.fb-cites { display: flex; flex-wrap: wrap; gap: 6px 14px; font-weight: 400; }
+.fb-cites label { display: inline-flex; gap: 6px; align-items: center; font-family: var(--mono, monospace); font-size: 0.8rem; }
+.fb-cites input { accent-color: var(--bad); }
+.feedback-note { margin: 12px 0 0; }

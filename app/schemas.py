@@ -150,3 +150,5 @@ class TriageResponse(BaseModel):
     clarifying_question: str | None = None
     evidence: list[Evidence] = Field(default_factory=list)
     trace: Trace
+    # Set when the server recorded this triage for feedback (POST /feedback).
+    triage_id: str | None = None

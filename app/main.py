@@ -25,6 +25,7 @@ FastAPI runs sync handlers in a thread pool so one slow call doesn't block the s
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -36,11 +37,13 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from app.config import get_settings as _settings_at_startup
 from app.demo import DemoCacheMiss, RateLimited, SlidingWindowLimiter, client_key
 from app.deps import (
+    FeedbackDep,
     LLMDep,
     RetrieverProviderDep,
     ServiceUnavailable,
     SettingsDep,
 )
+from app.feedback import FeedbackIn, FeedbackStore, UnknownTriage
 from app.integrations.routes import router as integrations_router
 from app.llm.errors import LLMCallError
 from app.observability import REGISTRY, RequestContextMiddleware, configure_logging, record_triage
@@ -114,12 +117,14 @@ def triage(
     settings: SettingsDep,
     llm: LLMDep,
     retriever_provider: RetrieverProviderDep,
+    feedback: FeedbackDep,
 ) -> Any:
     retriever: Retriever | None = (
         None if request.mode == "no_retrieval" else retriever_provider()
     )
     response = run_triage(request, retriever=retriever, llm=llm, settings=settings)
     record_triage(response, settings)
+    remember(feedback, request, response)
     if response.status == "invalid_output":
         return JSONResponse(status_code=422, content=response.model_dump(mode="json"))
     return response
@@ -138,6 +143,7 @@ def triage_stream(
     settings: SettingsDep,
     llm: LLMDep,
     retriever_provider: RetrieverProviderDep,
+    feedback: FeedbackDep,
 ) -> StreamingResponse:
     """Same input and final body as ``/triage``, with progress events while it runs."""
 
@@ -146,9 +152,35 @@ def triage_stream(
         return run_triage(request, retriever=retriever, llm=llm, settings=settings)
 
     body = stream_triage(http_request, work, mode=request.mode, model=llm.model_name,
-                         on_result=lambda r: record_triage(r, settings))
+                         on_result=lambda r: (record_triage(r, settings),
+                                              remember(feedback, request, r)))
     return StreamingResponse(body, media_type="text/event-stream",
                              headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+def remember(store: FeedbackStore | None, request: TriageRequest,
+             response: TriageResponse) -> None:
+    """Record the triage so feedback can refer to it. Never fails the triage itself."""
+    if store is None:
+        return
+    try:
+        store.record_triage(request, response)
+    except Exception:  # disk full, locked DB: the report still goes out, without an id
+        logging.getLogger("triagent").exception("could not record triage for feedback")
+
+
+@app.post("/feedback", status_code=201,
+          responses={404: {"description": "Unknown triage_id"},
+                     503: {"description": "Feedback is disabled"}})
+def post_feedback(body: FeedbackIn, store: FeedbackDep) -> dict[str, Any]:
+    """A reviewer's verdict on one triage. Re-posting replaces the earlier verdict."""
+    if store is None:
+        return JSONResponse(status_code=503, content={"detail": "Feedback is disabled."})
+    try:
+        return store.add_feedback(body)
+    except UnknownTriage:
+        return JSONResponse(status_code=404, content={
+            "detail": "Unknown triage_id: it was never recorded here, or has been evicted."})
 
 
 @app.get("/health")
@@ -179,6 +211,7 @@ def health(settings: SettingsDep, retriever_provider: RetrieverProviderDep) -> d
         "demo_samples_only": settings.demo_mode and not settings.gemini_api_key,
         "demo_requests_per_hour": settings.demo_requests_per_ip_per_hour
         if settings.demo_mode else None,
+        "feedback_enabled": settings.feedback_enabled,
         # Booleans only: never echo a secret or the webhook URL (it is a credential).
         "integrations": {"alert_webhook": bool(settings.webhook_token),
                          "slack_delivery": bool(settings.slack_webhook_url),

@@ -213,6 +213,7 @@ function renderResponse(body) {
   renderViolations(body.trace.violations);
   renderTimeline(body.trace.steps);
   renderEvidence(body.evidence || []);
+  renderFeedback(body);
 
   $("result").hidden = false;
   if (body.status !== "needs_clarification") {
@@ -417,6 +418,85 @@ function renderTimeline(steps) {
   $("timeline").replaceChildren(...steps.map(timelineItem));
 }
 
+// ------------------------------------------------------------------ reviewer feedback
+
+let feedbackFor = null; // triage_id the feedback card currently refers to
+
+function citedIds(report) {
+  if (!report) return [];
+  const ids = [...(report.severity_citations || [])];
+  for (const c of report.likely_causes || []) ids.push(...c.citations);
+  for (const s of report.next_steps || []) ids.push(...s.citations);
+  return [...new Set(ids)].sort();
+}
+
+function renderFeedback(body) {
+  const card = $("feedback-card");
+  // Only triages the server recorded can be rated; a clarifying question isn't a verdict.
+  feedbackFor = body.triage_id || null;
+  card.hidden = !feedbackFor || body.status === "needs_clarification";
+  if (card.hidden) return;
+  $("feedback-status").textContent = "";
+  $("fb-up").setAttribute("aria-pressed", "false");
+  $("fb-down").setAttribute("aria-pressed", "false");
+  $("fb-form").hidden = true;
+  $("fb-form").reset();
+  const ids = citedIds(body.report);
+  $("fb-cites").replaceChildren(...ids.map((id) =>
+    el("label", {}, el("input", { type: "checkbox", value: id }), id)));
+  $("fb-cites-wrap").hidden = ids.length === 0;
+}
+
+async function sendFeedback(payload) {
+  const status = $("feedback-status");
+  status.textContent = "Sending…";
+  try {
+    const resp = await fetch("/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ triage_id: feedbackFor, ...payload }),
+    });
+    if (!resp.ok) {
+      let body = null;
+      try { body = await resp.json(); } catch { /* ignore */ }
+      status.textContent = `Not saved: ${errorDetail(body) || `HTTP ${resp.status}`}`;
+      return false;
+    }
+    status.textContent = "Thanks, recorded.";
+    return true;
+  } catch (err) {
+    status.textContent = `Not saved: ${err}`;
+    return false;
+  }
+}
+
+function wireFeedback() {
+  $("fb-up").addEventListener("click", async () => {
+    $("fb-up").setAttribute("aria-pressed", "true");
+    $("fb-down").setAttribute("aria-pressed", "false");
+    $("fb-form").hidden = true;
+    await sendFeedback({ rating: "up" });
+  });
+  $("fb-down").addEventListener("click", () => {
+    $("fb-down").setAttribute("aria-pressed", "true");
+    $("fb-up").setAttribute("aria-pressed", "false");
+    $("fb-form").hidden = false;
+    $("feedback-status").textContent = "";
+    $("fb-severity").focus();
+  });
+  $("fb-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const ok = await sendFeedback({
+      rating: "down",
+      correct_severity: $("fb-severity").value || null,
+      should_abstain: $("fb-abstain").checked ? true : null,
+      wrong_citations: [...$("fb-cites").querySelectorAll("input:checked")].map((i) => i.value),
+      comment: $("fb-comment").value.trim(),
+    });
+    if (ok) $("fb-form").hidden = true;
+  });
+}
+
 // ------------------------------------------------------------------ header: health + theme
 
 async function loadHealth() {
@@ -528,5 +608,6 @@ function runSampleFromUrl() {
 }
 
 updateCount();
+wireFeedback();
 loadHealth();
 runSampleFromUrl();

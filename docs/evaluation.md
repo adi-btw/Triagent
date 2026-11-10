@@ -263,6 +263,14 @@ used the same cases and corpus, and flags two traps:
 - **Latency depends on where the model runs** (an API vs a laptop CPU) and on cache replays,
   which the report also flags.
 
+## 11. Growing the eval set from reviewer feedback
+
+Reviewer verdicts from the UI (`POST /feedback`) are exported as candidate cases:
+`python -m eval.feedback export-cases`. Each candidate passes `EvalCase` validation, and a
+person reviews it before it's appended to `cases.jsonl`. `python -m eval.feedback report`
+summarises acceptance rate by mode, model and prompt version, along with severity
+corrections and flagged citations. Details: [docs/feedback.md](feedback.md).
+
 ## Design FAQ
 
 1. **Why run the same model in all three modes?** To isolate the variable. With the model,

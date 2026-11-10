@@ -170,6 +170,23 @@ jobs:
           last = stream("a brand new incident that was never pre-computed")[-1]
           assert last[0] == "error" and last[1]["http_status"] == 403, last
           PY
+      - name: Feedback is recorded against a served triage (non-root container can write)
+        run: |
+          docker exec app python - <<'PY'
+          import json, urllib.request
+          from scripts.seed_demo_cache import sample_incidents
+          incident = next(iter(sample_incidents(open("app/static/app.js", encoding="utf-8").read()).values()))
+          def post(path, body):
+              req = urllib.request.Request("http://localhost:7860" + path, data=json.dumps(body).encode(),
+                                           headers={"Content-Type": "application/json"})
+              resp = urllib.request.urlopen(req, timeout=60)
+              return resp.status, json.load(resp)
+          _, triage = post("/triage", {"incident": incident, "mode": "rag"})
+          assert triage["triage_id"], triage
+          status, body = post("/feedback", {"triage_id": triage["triage_id"], "rating": "up"})
+          print(status, body)
+          assert status == 201
+          PY
       - name: UI is served
         run: curl -fsS localhost:7860/ | grep -q "Triagent"
       - name: Container logs

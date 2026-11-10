@@ -13,12 +13,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends
 
 from app.config import Settings
 from app.config import get_settings as _get_settings
+from app.feedback import FeedbackStore
 from app.llm.base import LLMClient
 from app.llm.factory import build_llm
 from app.retrieval.base import Retriever
@@ -70,6 +72,21 @@ def get_llm() -> LLMClient:
         raise ServiceUnavailable(f"LLM unavailable: {exc}") from exc
 
 
+@lru_cache
+def _cached_feedback_store(path: str, max_triages: int) -> FeedbackStore:
+    return FeedbackStore(Path(path), max_triages=max_triages)
+
+
+def get_feedback_store(
+    s: Annotated[Settings, Depends(get_settings)],
+) -> FeedbackStore | None:
+    """The feedback store, or None when ``FEEDBACK_ENABLED=false``."""
+    if not s.feedback_enabled:
+        return None
+    return _cached_feedback_store(str(s.feedback_db_path), s.feedback_max_triages)
+
+
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 LLMDep = Annotated[LLMClient, Depends(get_llm)]
 RetrieverProviderDep = Annotated[Callable[[], Retriever], Depends(get_retriever_provider)]
+FeedbackDep = Annotated[FeedbackStore | None, Depends(get_feedback_store)]

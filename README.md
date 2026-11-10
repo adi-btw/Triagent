@@ -260,6 +260,21 @@ On all 96 real eval reports the guards flag **0 false positives**. The 2 remaini
 semantic understanding to catch, and are documented as residual risk. See
 [docs/security.md](docs/security.md).
 
+## Reviewer feedback loop
+
+Every report in the UI asks **"Was this triage right?"** A reviewer can confirm it, or
+correct the severity, say it should have abstained, and flag citations that don't support
+their claim. The server stored the triage it showed under a `triage_id`, so feedback
+always points at the exact report, model and prompt version. Two commands close the loop:
+
+```bash
+python -m eval.feedback report         # acceptance by mode/model/prompt, severity corrections, flagged chunks
+python -m eval.feedback export-cases   # corrections -> validated candidate eval cases, for human review
+```
+
+Accepted candidates join `data/eval/cases.jsonl`, so the next model or prompt change is
+measured on the incidents people actually triaged. See [docs/feedback.md](docs/feedback.md).
+
 ## Streaming progress
 
 `POST /triage/stream` takes the same body as `/triage` and answers with Server-Sent Events:
@@ -313,13 +328,14 @@ app/
   integrations/              alert webhook parsing + dedupe, Slack Block Kit, signatures, routes
   demo.py                    public-demo guardrails (key-free mode, rate limits, budget)
   streaming.py               Server-Sent Events for POST /triage/stream
+  feedback.py                SQLite store of triages and reviewer verdicts (POST /feedback)
   main.py                    FastAPI: POST /triage(/stream), /webhooks/alert, /slack/commands, /health, /metrics
 data/corpus/                 26 synthetic runbooks, incidents and policies
 data/eval/cases.jsonl        32 labeled cases (answerable / insufficient_evidence / ambiguous)
 data/demo_cache/             pre-computed answers for the UI's sample incidents (demo mode)
 data/redteam/attacks.json    16 prompt-injection attacks (poisoned docs and incident text)
 examples/                    sample Alertmanager webhook payload
-eval/                        run_eval, retrieval_eval, retrieval_gate (CI), redteam (CI), metrics, judge
+eval/                        run_eval, feedback (report + case export), retrieval_eval, retrieval_gate (CI), redteam (CI), metrics, judge
 finetune/README.md           stage 4 requirements (not implemented yet)
 docs/                        design notes per subsystem: decisions, trade-offs, FAQ
 Dockerfile  render.yaml      container with baked-in index; Render blueprint (docs/deploy.md)
