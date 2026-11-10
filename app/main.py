@@ -25,9 +25,11 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
+from app.config import get_settings as _settings_at_startup
 from app.demo import DemoCacheMiss, RateLimited, SlidingWindowLimiter, client_key
 from app.deps import (
     LLMDep,
@@ -36,6 +38,7 @@ from app.deps import (
     SettingsDep,
 )
 from app.llm.errors import LLMCallError
+from app.observability import REGISTRY, RequestContextMiddleware, configure_logging, record_triage
 from app.retrieval.base import Retriever
 from app.schemas import TriageRequest, TriageResponse
 from app.triage.service import run_triage
@@ -48,6 +51,8 @@ app = FastAPI(
     description="Paste an incident; get a severity, likely causes and next steps, "
     "each citing retrieved runbook/incident passages.",
 )
+app.add_middleware(RequestContextMiddleware)
+configure_logging(_settings_at_startup())
 
 
 @app.exception_handler(ServiceUnavailable)
@@ -107,6 +112,7 @@ def triage(
         None if request.mode == "no_retrieval" else retriever_provider()
     )
     response = run_triage(request, retriever=retriever, llm=llm, settings=settings)
+    record_triage(response, settings)
     if response.status == "invalid_output":
         return JSONResponse(status_code=422, content=response.model_dump(mode="json"))
     return response
@@ -140,6 +146,12 @@ def health(settings: SettingsDep, retriever_provider: RetrieverProviderDep) -> d
         "demo_requests_per_hour": settings.demo_requests_per_ip_per_hour
         if settings.demo_mode else None,
     }
+
+
+@app.get("/metrics", response_class=PlainTextResponse, include_in_schema=False)
+def metrics() -> PlainTextResponse:
+    """Prometheus exposition format (see app/observability.py for the metric list)."""
+    return PlainTextResponse(generate_latest(REGISTRY), media_type=CONTENT_TYPE_LATEST)
 
 
 # Mounted last so the API routes above take precedence over "/" (Starlette matches in

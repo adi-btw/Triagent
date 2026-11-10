@@ -46,6 +46,14 @@ class Settings(BaseSettings):
     rerank_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"
     rerank_candidates: int = 20  # first-stage depth handed to the reranker
 
+    # Observability (app/observability.py)
+    log_format: Literal["text", "json"] = "text"
+    log_level: str = "info"
+    otel_enabled: bool = False  # needs opentelemetry-sdk; exporter via standard OTEL_* vars
+    # USD per million tokens, for the cost metric. No defaults: a wrong price is worse.
+    llm_price_input_per_mtok: float | None = None
+    llm_price_output_per_mtok: float | None = None
+
     # Public demo guardrails (app/demo.py). Off locally; the deployment turns them on.
     demo_mode: bool = False
     demo_requests_per_ip_per_hour: int = 20
