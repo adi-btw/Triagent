@@ -14,6 +14,11 @@ It's built in three stages, and each one can be measured against the others:
 | 3. Evaluation | 32 labeled cases; the same model compared with no retrieval, with RAG, and as an agent; LLM-as-judge for claim support; bootstrap CIs | [docs/evaluation.md](docs/evaluation.md), [data/eval/README.md](data/eval/README.md) |
 | 4. QLoRA (optional) | Dataset and hardware requirements for fine-tuning a small severity classifier, written up before any decision to build it | [finetune/README.md](finetune/README.md) |
 
+**Results** (32 labeled incidents, same model in every mode): exact severity rises from **38%** with no
+retrieval to **79%** with RAG and **93%** with the agent. Correct abstention on incidents the docs don't
+cover goes from **0/7** to **7/7**, with no false abstentions. Only **8%** of the agent's claims were judged unsupported by
+their cited passage. [Details](#end-to-end-no_retrieval-vs-rag-vs-agent).
+
 ## Architecture
 
 ```
@@ -117,15 +122,47 @@ matches that dominate this corpus. The stage stays available behind `RERANK=true
 
 ### End-to-end (no_retrieval vs RAG vs agent)
 
-*Pending a run with a real model.* This needs `GEMINI_API_KEY`, and a full run is about 200–300 LLM calls:
+`python -m eval.run_eval` ran all 32 cases in three modes, with the same model in each:
+`gemini-3.5-flash-lite`, temperature 0, hybrid retrieval, k = 5. All 96 units returned `ok`, and no
+judge call failed. Full report: [eval/results/latest.md](eval/results/latest.md).
+
+| Metric | no retrieval | RAG | agent |
+|---|---|---|---|
+| Severity exact [95% CI] | 38% (11/29) [21–55] | 79% (23/29) [66–93] | **93% (27/29) [83–100]** |
+| Correct abstention (7 uncovered incidents) | 0/7 | 5/7 | **7/7** |
+| False abstention (20 answerable) | 0/20 | 0/20 | 0/20 |
+| Claims supported by cited passage (judge) [95% CI] | 0% (by construction) | 67% [53–79] | **75% [64–84]** |
+| Claims *not* supported | 100% | 16% | **8%** |
+| Clarifying question on ambiguous cases | n/a | n/a | 4/5, and 0/27 on clear ones |
+| Citations of passages the model wasn't shown | 0 | 0 | 0 |
+| Latency p50 / p95 (fresh calls) | 1.1 s / 1.6 s | 1.7 s / 3.0 s | 2.1 s / 4.3 s |
+| LLM calls / tokens per case | 1 / 591 | 1 / 1,779 | 2.4 / 3,790 |
+
+What the numbers say:
+
+- **Retrieval is what makes severity right.** Without documents the model rates severity by
+  intuition, and over-rates. 8 of 12 SEV3 incidents became SEV2, because it has never seen the severity
+  policy. With RAG, every answerable case gets the exact severity (20/20), and the confusion matrix is
+  diagonal apart from abstentions.
+- **Without retrieval the model never says "I don't know."** It confidently triaged all 7 incidents
+  the corpus doesn't cover (Kafka, Elasticsearch, mobile crashes…). RAG abstained on 5 of 7 and the
+  agent on 7 of 7, and neither abstained on any answerable case.
+- **The agent's gain comes mostly from ambiguous incidents.** It asked a clarifying question on 4 of
+  5 vague reports, then got the severity right on 4 of 5. RAG has to answer the vague text, and got 0
+  of 5. On answerable cases RAG and the agent tie (20/20 severity, 75% supported claims). The agent
+  costs about 2.4× the LLM calls and 2× the tokens.
+- **Read the intervals.** The severity CIs for RAG and the agent overlap, and the abstention gap is
+  2 cases. The robust findings are retrieval vs no retrieval, and the agent's behavior on ambiguous inputs.
+
+Caveats: the judge is the same model as the generator, so claim support may be inflated by self-preference. The
+labels come from a single labeller, and the corpus and cases share an author (see Known limitations). The run
+finished in two passes after the key's credits ran out partway through. The second pass replayed answered calls
+from the LLM cache, so latency above comes from the first pass's fresh calls. Details are in the report.
+
+Reproduce:
 ```bash
-python -m eval.run_eval --modes no_retrieval rag agent --delay 7
+python -m eval.run_eval --delay 2     # ~190 LLM calls; reruns replay answered calls from .cache/llm
 ```
-It writes `eval/results/<run_id>.md` and `eval/results/latest.md`. Paste the comparison table here
-using the template in [docs/evaluation.md §8](docs/evaluation.md). It covers severity accuracy, claim support (judge),
-correct and false abstention, citation validity, clarification behavior, and p50/p95 latency.
-[eval/results/example-smoke.md](eval/results/example-smoke.md) shows the report format from an offline
-run with a fake LLM. **Its numbers are meaningless.**
 
 ## Repository layout
 
@@ -135,8 +172,8 @@ app/
   ingest/                    front-matter loader, heading chunker, idempotent ingest pipeline
   embeddings/                fastembed bge-small (query prefix applied once) and a hashing embedder for tests
   store/                     memory store (numpy + BM25) and Postgres store (pgvector + tsvector)
-  retrieval/                 vector / keyword / hybrid (reciprocal-rank fusion) retriever
-  llm/                       Gemini client (JSON schema output, retries) and fake LLMs, prompts
+  retrieval/                 vector / keyword / hybrid (RRF) retriever, optional cross-encoder rerank
+  llm/                       Gemini client (JSON schema output, retries), disk cache, fake LLMs, prompts
   triage/                    validator, RAG and no-retrieval pipelines, service entry point
   agent/                     bounded decision loop, AgentDecision schema, agent prompts
   static/                    demo UI (plain HTML/JS, no build step)
@@ -155,4 +192,6 @@ docs/                        design notes per subsystem: decisions, trade-offs, 
 - With 32 cases, every percentage carries a wide interval, and a single case is about 3 points.
 - The citation allow-list proves the model cited something it was *shown*. It does not prove the passage
   *supports* the claim. That's measured by the LLM judge, which should be spot-checked by a human.
+- The published run uses the same model as generator and judge. A stronger, separate judge model
+  (`JUDGE_MODEL=...`) would remove the self-preference bias.
 - The Postgres store has integration tests (`-m postgres`) that haven't yet been run against a live database.
