@@ -6,13 +6,23 @@ from app.llm.errors import LLMConfigError
 
 
 def with_cache(client: LLMClient, settings: Settings) -> LLMClient:
-    """Wrap ``client`` in the disk cache when ``settings.llm_cache`` is on."""
-    if not settings.llm_cache:
+    """Wrap ``client`` in the disk cache when ``settings.llm_cache`` is on.
+
+    Demo mode always caches, in ``demo_cache_dir`` (pre-seeded with the UI's samples),
+    and puts the daily budget *between* cache and provider so cache hits are free.
+    """
+    if not (settings.llm_cache or settings.demo_mode):
         return client
     from app.llm.cache import CachingLLM
 
+    cache_dir = settings.llm_cache_dir
+    if settings.demo_mode:
+        from app.demo import BudgetedLLM, DailyBudget
+
+        client = BudgetedLLM(client, DailyBudget(settings.demo_llm_calls_per_day))
+        cache_dir = settings.demo_cache_dir
     extra = f"gemini_thinking_level={settings.gemini_thinking_level}"
-    return CachingLLM(client, settings.llm_cache_dir, extra_key=extra)
+    return CachingLLM(client, cache_dir, extra_key=extra)
 
 
 def build_llm(settings: Settings) -> LLMClient:

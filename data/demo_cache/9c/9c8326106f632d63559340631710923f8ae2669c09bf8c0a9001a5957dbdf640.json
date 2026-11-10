@@ -1,0 +1,17 @@
+{
+ "format": 1,
+ "result": {
+  "text": "{\n  \"action\": \"draft_report\",\n  \"rationale\": \"The retrieved evidence includes relevant runbooks and past incidents for payment provider errors, providing sufficient context to draft a grounded report.\",\n  \"rewritten_query\": null,\n  \"clarifying_question\": null\n}",
+  "parsed": {
+   "action": "draft_report",
+   "rationale": "The retrieved evidence includes relevant runbooks and past incidents for payment provider errors, providing sufficient context to draft a grounded report.",
+   "rewritten_query": null,
+   "clarifying_question": null
+  },
+  "model": "gemini-3.5-flash-lite",
+  "latency_ms": 930.5378000026394,
+  "input_tokens": 1008,
+  "output_tokens": 63,
+  "cached": false
+ }
+}

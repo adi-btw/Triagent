@@ -1,0 +1,39 @@
+{
+ "format": 1,
+ "result": {
+  "text": "{\n  \"summary\": \"Customers are experiencing flaky payments with complaints of failures. The incident report lacks specific details on error rates, affected services, and impact duration.\",\n  \"severity\": null,\n  \"severity_citations\": [],\n  \"likely_causes\": [\n    {\n      \"description\": \"Payment provider errors or timeouts may be occurring on the primary payment processor PayFlux.\",\n      \"confidence\": \"low\",\n      \"citations\": [\n        \"RB-PAY-001#s1\"\n      ]\n    }\n  ],\n  \"next_steps\": [\n    {\n      \"action\": \"Check the dashboard payments-api provider panel to inspect error rate and latency split by provider.\",\n      \"citations\": [\n        \"RB-PAY-001#s2\"\n      ]\n    }\n  ],\n  \"insufficient_evidence\": true,\n  \"missing_information\": [\n    \"Affected service\",\n    \"Error rate percentage\",\n    \"Duration of impact\"\n  ]\n}",
+  "parsed": {
+   "summary": "Customers are experiencing flaky payments with complaints of failures. The incident report lacks specific details on error rates, affected services, and impact duration.",
+   "severity": null,
+   "severity_citations": [],
+   "likely_causes": [
+    {
+     "description": "Payment provider errors or timeouts may be occurring on the primary payment processor PayFlux.",
+     "confidence": "low",
+     "citations": [
+      "RB-PAY-001#s1"
+     ]
+    }
+   ],
+   "next_steps": [
+    {
+     "action": "Check the dashboard payments-api provider panel to inspect error rate and latency split by provider.",
+     "citations": [
+      "RB-PAY-001#s2"
+     ]
+    }
+   ],
+   "insufficient_evidence": true,
+   "missing_information": [
+    "Affected service",
+    "Error rate percentage",
+    "Duration of impact"
+   ]
+  },
+  "model": "gemini-3.5-flash-lite",
+  "latency_ms": 1473.0325000018638,
+  "input_tokens": 1370,
+  "output_tokens": 226,
+  "cached": false
+ }
+}

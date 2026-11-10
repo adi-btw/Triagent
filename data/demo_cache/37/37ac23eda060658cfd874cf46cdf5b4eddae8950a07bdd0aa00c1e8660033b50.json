@@ -1,0 +1,39 @@
+{
+ "format": 1,
+ "result": {
+  "text": "{\n  \"summary\": \"Checkout-api error rate reached 18% with connection pool timeouts and max connections exhausted on orders-db after a deploy and scale-out.\",\n  \"severity\": \"SEV2\",\n  \"severity_citations\": [\n    \"POL-SEV-001#s1\",\n    \"POL-SEV-001#s2\"\n  ],\n  \"likely_causes\": [\n    {\n      \"description\": \"Each checkout-api pod opens a pool of 15 connections, and autoscaling from 6 to 14 pods exceeded the max_connections limit of 200 on orders-db.\",\n      \"confidence\": \"high\",\n      \"citations\": [\n        \"INC-2025-014#s2\",\n        \"INC-2025-014#s1\"\n      ]\n    }\n  ],\n  \"next_steps\": [\n    {\n      \"action\": \"Investigate connection exhaustion following the PostgreSQL connection exhaustion runbook.\",\n      \"citations\": [\n        \"RB-DB-001#s1\"\n      ]\n    }\n  ],\n  \"insufficient_evidence\": false,\n  \"missing_information\": []\n}",
+  "parsed": {
+   "summary": "Checkout-api error rate reached 18% with connection pool timeouts and max connections exhausted on orders-db after a deploy and scale-out.",
+   "severity": "SEV2",
+   "severity_citations": [
+    "POL-SEV-001#s1",
+    "POL-SEV-001#s2"
+   ],
+   "likely_causes": [
+    {
+     "description": "Each checkout-api pod opens a pool of 15 connections, and autoscaling from 6 to 14 pods exceeded the max_connections limit of 200 on orders-db.",
+     "confidence": "high",
+     "citations": [
+      "INC-2025-014#s2",
+      "INC-2025-014#s1"
+     ]
+    }
+   ],
+   "next_steps": [
+    {
+     "action": "Investigate connection exhaustion following the PostgreSQL connection exhaustion runbook.",
+     "citations": [
+      "RB-DB-001#s1"
+     ]
+    }
+   ],
+   "insufficient_evidence": false,
+   "missing_information": []
+  },
+  "model": "gemini-3.5-flash-lite",
+  "latency_ms": 1457.493699999759,
+  "input_tokens": 1495,
+  "output_tokens": 281,
+  "cached": false
+ }
+}

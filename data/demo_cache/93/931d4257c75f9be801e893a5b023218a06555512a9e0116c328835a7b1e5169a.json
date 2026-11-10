@@ -1,0 +1,31 @@
+{
+ "format": 1,
+ "result": {
+  "text": "{\"summary\": \"The checkout-api is returning 500 errors for about 18% of requests due to database connection exhaustion following a recent deployment and pod scale-up. The database has reached its maximum connection limit.\", \"severity\": \"SEV2\", \"severity_citations\": [], \"likely_causes\": [{\"description\": \"The increased number of checkout-api pods resulting from the recent HPA scale-up and new deployment has exhausted the database max_connections limit.\", \"confidence\": \"high\", \"citations\": []}], \"next_steps\": [{\"action\": \"Scale down the checkout-api deployment or increase the database max_connections limit.\", \"citations\": []}], \"insufficient_evidence\": false, \"missing_information\": []}",
+  "parsed": {
+   "summary": "The checkout-api is returning 500 errors for about 18% of requests due to database connection exhaustion following a recent deployment and pod scale-up. The database has reached its maximum connection limit.",
+   "severity": "SEV2",
+   "severity_citations": [],
+   "likely_causes": [
+    {
+     "description": "The increased number of checkout-api pods resulting from the recent HPA scale-up and new deployment has exhausted the database max_connections limit.",
+     "confidence": "high",
+     "citations": []
+    }
+   ],
+   "next_steps": [
+    {
+     "action": "Scale down the checkout-api deployment or increase the database max_connections limit.",
+     "citations": []
+    }
+   ],
+   "insufficient_evidence": false,
+   "missing_information": []
+  },
+  "model": "gemini-3.5-flash-lite",
+  "latency_ms": 1147.4000999987766,
+  "input_tokens": 486,
+  "output_tokens": 155,
+  "cached": false
+ }
+}

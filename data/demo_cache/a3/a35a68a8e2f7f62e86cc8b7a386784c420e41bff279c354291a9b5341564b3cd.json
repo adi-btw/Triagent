@@ -1,0 +1,35 @@
+{
+ "format": 1,
+ "result": {
+  "text": "{\"summary\": \"Customers are experiencing flaky behavior with the payment system. Further details are needed to determine the exact scope and root cause.\", \"severity\": \"SEV1\", \"severity_citations\": [], \"likely_causes\": [{\"description\": \"The payment gateway or upstream banking service is experiencing intermittent outages or high latency.\", \"confidence\": \"low\", \"citations\": []}], \"next_steps\": [{\"action\": \"Check the payment gateway status page and API error rates.\", \"citations\": []}], \"insufficient_evidence\": true, \"missing_information\": [\"Exact error rates\", \"Percentage of affected users\", \"Specific error codes from payment logs\"]}",
+  "parsed": {
+   "summary": "Customers are experiencing flaky behavior with the payment system. Further details are needed to determine the exact scope and root cause.",
+   "severity": "SEV1",
+   "severity_citations": [],
+   "likely_causes": [
+    {
+     "description": "The payment gateway or upstream banking service is experiencing intermittent outages or high latency.",
+     "confidence": "low",
+     "citations": []
+    }
+   ],
+   "next_steps": [
+    {
+     "action": "Check the payment gateway status page and API error rates.",
+     "citations": []
+    }
+   ],
+   "insufficient_evidence": true,
+   "missing_information": [
+    "Exact error rates",
+    "Percentage of affected users",
+    "Specific error codes from payment logs"
+   ]
+  },
+  "model": "gemini-3.5-flash-lite",
+  "latency_ms": 1214.6618999977363,
+  "input_tokens": 309,
+  "output_tokens": 133,
+  "cached": false
+ }
+}

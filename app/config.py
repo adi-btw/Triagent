@@ -46,6 +46,13 @@ class Settings(BaseSettings):
     rerank_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"
     rerank_candidates: int = 20  # first-stage depth handed to the reranker
 
+    # Public demo guardrails (app/demo.py). Off locally; the deployment turns them on.
+    demo_mode: bool = False
+    demo_requests_per_ip_per_hour: int = 20
+    demo_llm_calls_per_day: int = 300
+    demo_proxy_hops: int = 1  # trusted proxies in front of the app (X-Forwarded-For)
+    demo_cache_dir: Path = Path("data/demo_cache")
+
     # Agent limits (enforced by code, never by the model)
     agent_max_steps: int = 4
     agent_max_query_rewrites: int = 1

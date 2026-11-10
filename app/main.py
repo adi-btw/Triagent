@@ -12,6 +12,7 @@ Status codes:
          Tell them apart by the presence of "status".)
     502  the LLM provider failed after retries
     503  the retriever or LLM could not be built (no index, no API key)
+    429  demo mode only: per-visitor rate limit or daily model budget (``Retry-After``)
 
 Handlers are plain ``def`` (not ``async def``): the LLM SDK call is blocking, and
 FastAPI runs sync handlers in a thread pool so one slow call doesn't block the server.
@@ -22,10 +23,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.demo import RateLimited, SlidingWindowLimiter, client_key
 from app.deps import (
     LLMDep,
     RetrieverProviderDep,
@@ -52,6 +54,27 @@ def _service_unavailable(_: Request, exc: ServiceUnavailable) -> JSONResponse:
     return JSONResponse(status_code=503, content={"detail": str(exc)})
 
 
+@app.exception_handler(RateLimited)
+def _rate_limited(_: Request, exc: RateLimited) -> JSONResponse:
+    return JSONResponse(status_code=429, content={"detail": str(exc)},
+                        headers={"Retry-After": str(exc.retry_after_s)})
+
+
+_limiter: SlidingWindowLimiter | None = None
+
+
+def demo_rate_limit(request: Request, settings: SettingsDep) -> None:
+    """Per-visitor sliding-window limit on /triage; a no-op unless DEMO_MODE is on."""
+    global _limiter
+    if not settings.demo_mode:
+        return
+    if _limiter is None or _limiter.limit != settings.demo_requests_per_ip_per_hour:
+        _limiter = SlidingWindowLimiter(settings.demo_requests_per_ip_per_hour)
+    host = request.client.host if request.client else None
+    _limiter.hit(client_key(host, request.headers.get("x-forwarded-for"),
+                            settings.demo_proxy_hops))
+
+
 @app.exception_handler(LLMCallError)
 def _llm_failed(_: Request, exc: LLMCallError) -> JSONResponse:
     return JSONResponse(status_code=502, content={"detail": str(exc)})
@@ -64,7 +87,9 @@ def _llm_failed(_: Request, exc: LLMCallError) -> JSONResponse:
         422: {"model": TriageResponse, "description": "Report failed validation"},
         502: {"description": "LLM provider failed"},
         503: {"description": "Retriever or LLM not configured"},
+        429: {"description": "Demo mode: rate limit or daily budget reached"},
     },
+    dependencies=[Depends(demo_rate_limit)],
 )
 def triage(
     request: TriageRequest,
@@ -103,6 +128,9 @@ def health(settings: SettingsDep, retriever_provider: RetrieverProviderDep) -> d
         "llm_key_present": bool(settings.gemini_api_key),
         "index_ok": index_ok,
         "index_error": index_error,
+        "demo_mode": settings.demo_mode,
+        "demo_requests_per_hour": settings.demo_requests_per_ip_per_hour
+        if settings.demo_mode else None,
     }
 
 

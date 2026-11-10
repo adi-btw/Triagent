@@ -1,0 +1,17 @@
+{
+ "format": 1,
+ "result": {
+  "text": "{\n  \"action\": \"draft_report\",\n  \"rationale\": \"The retrieved evidence includes past incidents and runbooks matching the exact error and autoscaling behavior. We have sufficient details to draft the triage report.\",\n  \"rewritten_query\": null,\n  \"clarifying_question\": null\n}",
+  "parsed": {
+   "action": "draft_report",
+   "rationale": "The retrieved evidence includes past incidents and runbooks matching the exact error and autoscaling behavior. We have sufficient details to draft the triage report.",
+   "rewritten_query": null,
+   "clarifying_question": null
+  },
+  "model": "gemini-3.5-flash-lite",
+  "latency_ms": 800.7390000020678,
+  "input_tokens": 1355,
+  "output_tokens": 67,
+  "cached": false
+ }
+}
