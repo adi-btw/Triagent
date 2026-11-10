@@ -24,11 +24,16 @@ class Settings(BaseSettings):
     embedding_dim: int = 384
 
     # Generation
-    llm_provider: Literal["gemini", "fake"] = "gemini"
+    llm_provider: Literal["gemini", "openai_compat", "fake"] = "gemini"
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-3.8-flash"
     # Reasoning depth for Gemini 3.x models; None leaves the model's default (slower).
     gemini_thinking_level: Literal["minimal", "low", "medium", "high"] | None = "low"
+    # Any OpenAI-compatible API (app/llm/openai_compat.py): Ollama, Groq, OpenRouter...
+    openai_base_url: str = "http://localhost:11434/v1"  # Ollama's default
+    openai_api_key: str | None = None  # not needed for Ollama
+    openai_model: str = "qwen2.5:7b"
+    openai_json_mode: Literal["json_schema", "json_object"] = "json_schema"
     llm_temperature: float = 0.0
     llm_timeout_s: float = 120.0
     # Disk cache of LLM answers (app/llm/cache.py). Off for the app; the eval turns it on.

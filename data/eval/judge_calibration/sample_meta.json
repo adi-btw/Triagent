@@ -1,0 +1,15 @@
+{
+  "source_run": "eval/results/runs/20261110T024152Z-738ce87/raw.jsonl",
+  "seed": 7,
+  "quota": {
+    "supported": 14,
+    "partially_supported": 12,
+    "not_supported": 14
+  },
+  "population_verdicts": {
+    "supported": 100,
+    "partially_supported": 24,
+    "not_supported": 17
+  },
+  "n_population": 141
+}

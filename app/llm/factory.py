@@ -21,7 +21,9 @@ def with_cache(client: LLMClient, settings: Settings) -> LLMClient:
 
         client = BudgetedLLM(client, DailyBudget(settings.demo_llm_calls_per_day))
         cache_dir = settings.demo_cache_dir
-    extra = f"gemini_thinking_level={settings.gemini_thinking_level}"
+    extra = (f"gemini_thinking_level={settings.gemini_thinking_level}"
+             if settings.llm_provider == "gemini"
+             else f"openai_compat={settings.openai_base_url} json_mode={settings.openai_json_mode}")
     return CachingLLM(client, cache_dir, extra_key=extra)
 
 
@@ -54,6 +56,17 @@ def build_llm(settings: Settings) -> LLMClient:
             model=settings.gemini_model,
             timeout_s=settings.llm_timeout_s,
             thinking_level=settings.gemini_thinking_level,
+        )
+        return with_cache(client, settings)
+    if settings.llm_provider == "openai_compat":
+        from app.llm.openai_compat import OpenAICompatClient
+
+        client = OpenAICompatClient(
+            base_url=settings.openai_base_url,
+            model=settings.openai_model,
+            api_key=settings.openai_api_key,
+            json_mode=settings.openai_json_mode,
+            timeout_s=settings.llm_timeout_s,
         )
         return with_cache(client, settings)
     raise LLMConfigError(f"Unknown llm_provider: {settings.llm_provider!r}")

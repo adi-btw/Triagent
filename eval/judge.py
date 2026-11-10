@@ -204,11 +204,16 @@ def judge_response(
 def judge_model_name(settings: Settings, eval_settings: EvalSettings) -> str:
     if settings.llm_provider == "fake":
         return "fake-demo"
-    return eval_settings.judge_model or settings.gemini_model
+    if settings.llm_provider == "openai_compat":
+        default = settings.openai_model
+    else:
+        default = settings.gemini_model
+    return eval_settings.judge_model or default
 
 
 def build_judge_llm(settings: Settings, eval_settings: EvalSettings) -> LLMClient:
     """Same provider as generation, possibly a different model (``JUDGE_MODEL``)."""
     if eval_settings.judge_model and settings.llm_provider != "fake":
-        settings = settings.model_copy(update={"gemini_model": eval_settings.judge_model})
+        key = "openai_model" if settings.llm_provider == "openai_compat" else "gemini_model"
+        settings = settings.model_copy(update={key: eval_settings.judge_model})
     return build_llm(settings)

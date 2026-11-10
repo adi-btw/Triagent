@@ -218,6 +218,51 @@ author (retrieval likely optimistic); claim support is an LLM judgement calibrat
 human labels; ambiguous cases favour the agent by design.
 ```
 
+## 9. Calibrating the judge against a human
+
+"Claims supported" comes from an LLM judge, and in the published run the judge is the same
+model as the generator. `eval/judge_calibration.py` measures how much that number can be
+trusted:
+
+1. `python -m eval.judge_calibration export` draws 40 claims the judge graded (RAG and agent),
+   stratified by verdict with a fixed seed: 14 supported, 12 partially supported, 14 not
+   supported, out of 100 / 24 / 17. A simple random sample of 40 would hold about 5 "not
+   supported" claims, too few to say anything about. The sample is
+   `data/eval/judge_calibration/sample.jsonl`. It needs no LLM calls, because the verdicts
+   come from the published run.
+2. A person labels each claim **blind** to the judge's verdict, reading only the claim, the
+   incident and the cited passages, into `human_labels.jsonl`.
+3. `python -m eval.judge_calibration score` writes `eval/results/judge-calibration.md`:
+   - raw agreement, plus agreement re-weighted to the real verdict mix (the sample
+     over-represents the rarer verdicts, so its raw agreement isn't the population's);
+   - Cohen's kappa for 3 classes and for supported-vs-not;
+   - the judge's precision on "supported", which is what the README number rests on;
+   - the confusion matrix and every disagreement.
+
+One labeller who also wrote the corpus is not ground truth. It measures agreement with one
+careful reader, which is still far better than an unchecked judge.
+
+## 10. Comparing models
+
+The harness is model-agnostic. `LLM_PROVIDER=openai_compat` (`app/llm/openai_compat.py`)
+talks to any OpenAI-compatible API: Ollama on a laptop (free, no key), Groq or OpenRouter.
+
+```bash
+# e.g. a local 3B model through Ollama, no API key, no cost
+LLM_PROVIDER=openai_compat OPENAI_MODEL=qwen2.5:3b python -m eval.run_eval --no-judge
+python -m eval.compare_models eval/results/runs/<gemini run> eval/results/runs/<qwen run> --mode rag
+```
+
+`eval/compare_models.py` writes `eval/results/model-comparison.md`. It checks that the runs
+used the same cases and corpus, and flags two traps:
+
+- **Claim support needs the same judge for every model.** A model judged by itself or by a
+  lenient judge looks better. Runs judged by different models are flagged. Severity,
+  abstention, validity and clarification are scored against labels with no judge, so those
+  rows are always comparable.
+- **Latency depends on where the model runs** (an API vs a laptop CPU) and on cache replays,
+  which the report also flags.
+
 ## Design FAQ
 
 1. **Why run the same model in all three modes?** To isolate the variable. With the model,
