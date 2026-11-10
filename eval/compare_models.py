@@ -54,7 +54,7 @@ ROWS: list[tuple[str, Any]] = [
     ("Clarifying question on vague cases (agent)",
      lambda m: _rate(m["clarification"]["clarification_rate"])),
     ("Claims supported (judge)", lambda m: _rate(m["claim_support"]["supported"], ci=True)
-     if m["claim_support"].get("claims") else "not judged"),
+     if (m.get("claim_support") or {}).get("claims") else "not judged"),
     ("Latency p50 / p95", lambda m: f"{m['latency']['p50_ms'] / 1000:.1f}s / "
      f"{m['latency']['p95_ms'] / 1000:.1f}s" if m["latency"].get("p50_ms") else "n/a"),
     ("LLM calls / tokens per case", lambda m: f"{m['latency']['mean_llm_calls']:.1f} / "
@@ -96,7 +96,7 @@ def render(runs: list[dict[str, Any]], mode: str) -> str:
                 continue
             try:
                 cells.append(fn(m))
-            except (KeyError, TypeError):  # metric not defined for this mode
+            except (KeyError, TypeError, AttributeError):  # metric not defined here
                 cells.append("n/a")
         lines.append(f"| {label} | " + " | ".join(cells) + " |")
     lines += ["", "Run ids: " + ", ".join(f"`{m['run_id']}`" for m in metas), ""]

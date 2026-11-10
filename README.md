@@ -208,6 +208,34 @@ Reproduce:
 python -m eval.run_eval --delay 2     # ~190 LLM calls; reruns replay answered calls from .cache/llm
 ```
 
+### Hosted model vs a local 3B model
+
+The same 32 cases were run against qwen2.5:3b. It runs locally through Ollama on a laptop
+CPU, with no API key and no cost. Both runs use the same prompts and retrieval; only the
+model changes. See [eval/results/model-comparison.md](eval/results/model-comparison.md).
+
+| RAG mode | gemini-3.5-flash-lite | qwen2.5:3b (local CPU) |
+|---|---|---|
+| Severity exact | 79% (23/29) | 66% (19/29) |
+| Severity within one level | 79% (23/29) | 93% (27/29) |
+| Correct abstention (7 uncovered) | 71% (5/7) | 14% (1/7) |
+| Report accepted by validator | 100% (32/32) | 75% (24/32) |
+| Latency p50 (uncached) | 1.7 s | 34 s |
+
+- **The small model is close on severity but rarely abstains.** It answered 6 of the 7
+  incidents the corpus doesn't cover.
+- **The validator caught the rest.** The 8 rejected reports cite whole document ids or
+  chunks that were never retrieved, or set severity without citing the policy. All 8 became
+  `invalid_output` instead of reaching a user.
+- Qwen's claims weren't judged: a paid judge would cost money, and self-grading isn't
+  credible. In agent mode, 4 calls hit the 120 s timeout on CPU.
+
+```bash
+ollama pull qwen2.5:3b
+LLM_PROVIDER=openai_compat OPENAI_MODEL=qwen2.5:3b python -m eval.run_eval --no-judge
+python -m eval.compare_models eval/results/runs/<gemini-run> eval/results/runs/<qwen-run>
+```
+
 ### Prompt-injection red team
 
 `python -m eval.redteam` replays 16 injection attacks, delivered through poisoned runbooks or

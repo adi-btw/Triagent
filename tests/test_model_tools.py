@@ -138,6 +138,12 @@ def test_comparison_table_and_warnings():
     assert "replayed" in compare_models.render([summary("a", 23, hits="5/10")], "rag")
 
 
+def test_unjudged_run_shows_not_judged():
+    s = summary("b", 20, judge=None)
+    s["metrics"]["by_mode"]["rag"]["claim_support"] = None  # run with --no-judge
+    assert "| Claims supported (judge) | not judged |" in compare_models.render([s], "rag")
+
+
 def test_comparison_flags_mismatched_cases():
     b = summary("b", 20)
     b["metadata"]["cases_sha256"] = "other"
