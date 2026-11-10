@@ -302,12 +302,12 @@ query and passage *together*, so it is usually more accurate than comparing two 
 embeddings, at the cost of one model pass per pair. It's off by default (`RERANK=false`) because
 on this corpus it did not help:
 
-| Metric @5 (first stage: hybrid) | no rerank | MiniLM-L6 (ms-marco) | jina-v1-tiny | jina-v1-turbo |
-|---|---|---|---|---|
-| Primary-doc hit | **100%** | 64% [44–84] | 72% [52–88] | 96% [88–100] |
-| Doc recall | 59% [55–64] | 42% [34–49] | 53% [43–62] | 60% [54–66] |
-| Chunk recall | 61% [52–70] | 38% [27–50] | 45% [34–56] | 64% [54–73] |
-| MRR (chunk) | 78% [65–90] | 47% [33–61] | 48% [35–63] | 81% [68–93] |
+| Metric @5 (first stage: hybrid) | no rerank | MiniLM-L6 (ms-marco) | jina-v1-tiny | bge-reranker-base | jina-v1-turbo |
+|---|---|---|---|---|---|
+| Primary-doc hit | **100%** | 64% [44–84] | 72% [52–88] | 84% [68–96] | 96% [88–100] |
+| Doc recall | 59% [55–64] | 42% [34–49] | 53% [43–62] | 51% [43–59] | 60% [54–66] |
+| Chunk recall | 61% [52–70] | 38% [27–50] | 45% [34–56] | 59% [47–72] | 64% [54–73] |
+| MRR (chunk) | 78% [65–90] | 47% [33–61] | 48% [35–63] | 66% [51–80] | 81% [68–93] |
 
 Reproduce with
 `python -m eval.retrieval_eval --modes hybrid hybrid+rerank --rerank-model <model>`.
@@ -320,7 +320,8 @@ Why it hurts here:
   signal in this corpus, and a web-trained cross-encoder doesn't weight it the way BM25 does.
 - **Truncation is not the cause.** Incidents are 3–62 words (median 41) and sections are short,
   well inside the 512-token window. The 8k-context jina models confirmed this: the tiny one was
-  still worse than no reranking.
+  still worse than no reranking. Model size isn't the fix either:
+  bge-reranker-base (1 GB, about 10x slower on CPU) lost 4 primary hits.
 - **The first stage is already at the ceiling** for the metric that matters most. Hybrid puts the
   primary document in the top 5 for every case, so a reranker can only hold that or lose it. The
   best model (jina-turbo) moves chunk recall and MRR by about 3 points, which is inside the
