@@ -1,4 +1,4 @@
-// Triagent UI for POST /triage. Vanilla JS, no build step, no external dependencies.
+// Triagent UI for POST /triage/stream (progress events, then the report). Vanilla JS, no build step, no external dependencies.
 //
 // Safety note: everything shown comes from the model or the corpus, so it is written with
 // textContent / createElement, never innerHTML. A report that contains "<script>" is
@@ -56,6 +56,8 @@ function setBusy(busy) {
   clearInterval(loadingTimer);
   $("loading").hidden = !busy;
   if (busy) {
+    $("live-steps").replaceChildren();
+    $("live-evidence").hidden = true;
     $("empty").hidden = true;
     $("result").hidden = true;
     const mode = lastRequest ? lastRequest.mode : selectedMode();
@@ -89,42 +91,111 @@ function errorDetail(body) {
   return JSON.stringify(body);
 }
 
+const ERROR_TITLES = {
+  422: "The request was rejected",
+  403: "Only the sample incidents work in this demo",
+  429: "Demo limit reached",
+  501: "This mode is not available on the server",
+  502: "The language model provider failed",
+  503: "The server is not fully configured",
+};
+
+// One place for the end of a request, whichever endpoint answered. 200 ok /
+// needs_clarification, and 422 *with* "status" (report failed validation), are both full
+// TriageResponse bodies. A 422 without "status" is a bad request.
+function finish(httpStatus, body) {
+  setBusy(false);
+  if (body && typeof body.status === "string" && (httpStatus < 400 || httpStatus === 422)) {
+    renderResponse(body);
+    return;
+  }
+  $("empty").hidden = false;
+  showError(ERROR_TITLES[httpStatus] || `Request failed (HTTP ${httpStatus})`, errorDetail(body));
+}
+
 async function submitTriage(payload) {
   lastRequest = payload;
   $("error").hidden = true;
   $("clarify").hidden = true;
   setBusy(true);
   try {
-    const resp = await fetch("/triage", {
+    // Streamed: progress events while the server works, then the same final body as
+    // /triage. Falls back to the plain endpoint if the browser can't read a stream.
+    const resp = await fetch(window.ReadableStream ? "/triage/stream" : "/triage", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-    let body = null;
-    try { body = await resp.json(); } catch { /* non-JSON error page */ }
-
-    // 200 ok / needs_clarification, and 422 *with* "status" (report failed validation),
-    // are both full TriageResponse bodies. A 422 without "status" is a bad request.
-    if (body && typeof body.status === "string" && (resp.ok || resp.status === 422)) {
-      setBusy(false);
-      renderResponse(body);
+    const isStream = (resp.headers.get("content-type") || "").startsWith("text/event-stream");
+    if (resp.ok && isStream && resp.body) {
+      await readStream(resp.body);
       return;
     }
-    setBusy(false);
-    $("empty").hidden = false;
-    const titles = {
-      422: "The request was rejected",
-      403: "Only the sample incidents work in this demo",
-      429: "Demo limit reached",
-      501: "This mode is not available on the server",
-      502: "The language model provider failed",
-      503: "The server is not fully configured",
-    };
-    showError(titles[resp.status] || `Request failed (HTTP ${resp.status})`, errorDetail(body));
+    let body = null;
+    try { body = await resp.json(); } catch { /* non-JSON error page */ }
+    finish(resp.status, body);
   } catch (err) {
     setBusy(false);
     $("empty").hidden = false;
     showError("Could not reach the server", String(err));
+  }
+}
+
+// Minimal Server-Sent Events parser over fetch (EventSource can't POST a body).
+async function readStream(stream) {
+  const reader = stream.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  let ended = false;
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer = (buffer + value).replaceAll("\r\n", "\n");
+    let cut;
+    while ((cut = buffer.indexOf("\n\n")) >= 0) {
+      const raw = buffer.slice(0, cut);
+      buffer = buffer.slice(cut + 2);
+      let event = "message";
+      let data = "";
+      for (const line of raw.split("\n")) {
+        if (line.startsWith("event:")) event = line.slice(6).trim();
+        else if (line.startsWith("data:")) data += line.slice(5).trim();
+      }
+      if (!data) continue; // ": ping" keep-alive comments
+      const msg = JSON.parse(data);
+      if (event === "result") { ended = true; finish(msg.http_status, msg.response); }
+      else if (event === "error") { ended = true; finish(msg.http_status, { detail: msg.detail }); }
+      else onProgress(event, msg);
+    }
+  }
+  if (!ended) finish(0, { detail: "The connection closed before the triage finished." });
+}
+
+// ------------------------------------------------------------------ live progress
+
+const RUNNING_LABEL = {
+  generate: "Drafting the report", draft: "Drafting the report",
+  repair: "Repairing the report after validation", decide: "Agent is deciding what to do next",
+};
+
+function onProgress(event, msg) {
+  const list = $("live-steps");
+  if (event === "step_started") {
+    list.querySelector(".running")?.remove();
+    list.append(el("li", { class: "running" },
+      el("span", { class: "step-dot kind-running", "aria-hidden": "true" }, el("span", { class: "spinner" })),
+      el("span", { class: "step-body" },
+        el("span", { class: "step-name", text: RUNNING_LABEL[msg.name] || msg.name }),
+        el("span", { class: "step-detail", text: "waiting for the model…" })),
+      el("span", { class: "step-latency", text: "" })));
+  } else if (event === "step") {
+    list.querySelector(".running")?.remove();
+    list.append(timelineItem(msg.step));
+  } else if (event === "evidence") {
+    const titles = [...new Set(msg.items.map((e) => e.title))];
+    const box = $("live-evidence");
+    box.textContent = `Evidence so far: ${msg.items.length} passages from ${titles.length} documents. ` +
+      truncate(titles.join(" · "), 220);
+    box.hidden = false;
   }
 }
 
@@ -329,19 +400,21 @@ const STEP_GLYPH = {
   generate: "G", draft: "G", repair: "F", validate: "✓", override: "!",
 };
 
+function timelineItem(step) {
+  const failed = step.name === "validate" && (step.detail.violations || []).length;
+  const kind = failed ? "fail" : step.name;
+  return el("li", {},
+    el("span", { class: `step-dot kind-${kind}`, "aria-hidden": "true", text: failed ? "✕" : STEP_GLYPH[step.name] || "·" }),
+    el("span", { class: "step-body" },
+      el("span", { class: "step-name", text: step.name.replaceAll("_", " ") }),
+      el("span", { class: "step-detail", text: describeStep(step) })),
+    el("span", { class: "step-latency", text: formatMs(step.latency_ms) }));
+}
+
 function renderTimeline(steps) {
   const total = steps.reduce((sum, s) => sum + s.latency_ms, 0);
   $("trace-summary").textContent = `${steps.length} steps · ${formatMs(total)}`;
-  $("timeline").replaceChildren(...steps.map((step) => {
-    const failed = step.name === "validate" && (step.detail.violations || []).length;
-    const kind = failed ? "fail" : step.name;
-    return el("li", {},
-      el("span", { class: `step-dot kind-${kind}`, "aria-hidden": "true", text: failed ? "✕" : STEP_GLYPH[step.name] || "·" }),
-      el("span", { class: "step-body" },
-        el("span", { class: "step-name", text: step.name.replaceAll("_", " ") }),
-        el("span", { class: "step-detail", text: describeStep(step) })),
-      el("span", { class: "step-latency", text: formatMs(step.latency_ms) }));
-  }));
+  $("timeline").replaceChildren(...steps.map(timelineItem));
 }
 
 // ------------------------------------------------------------------ header: health + theme

@@ -260,6 +260,16 @@ On all 96 real eval reports the guards flag **0 false positives**. The 2 remaini
 semantic understanding to catch, and are documented as residual risk. See
 [docs/security.md](docs/security.md).
 
+## Streaming progress
+
+`POST /triage/stream` takes the same body as `/triage` and answers with Server-Sent Events:
+the evidence as soon as it's retrieved, each agent decision with its rationale, and which model
+call is running. The final event carries the same body and status code `/triage` would return.
+The demo UI uses it, so a 40 s run on a local CPU model shows its steps as they happen
+rather than a spinner. Report tokens are deliberately **not** streamed. Every claim is
+validated before it's shown, so the report arrives once, checked.
+See [docs/streaming.md](docs/streaming.md).
+
 ## Alert webhooks and Slack
 
 `POST /webhooks/alert` takes Prometheus Alertmanager (or Grafana) webhooks, or plain
@@ -302,7 +312,8 @@ app/
   observability.py           request ids, JSON logs, Prometheus metrics, OpenTelemetry spans
   integrations/              alert webhook parsing + dedupe, Slack Block Kit, signatures, routes
   demo.py                    public-demo guardrails (key-free mode, rate limits, budget)
-  main.py                    FastAPI: POST /triage, /webhooks/alert, /slack/commands, /health, /metrics
+  streaming.py               Server-Sent Events for POST /triage/stream
+  main.py                    FastAPI: POST /triage(/stream), /webhooks/alert, /slack/commands, /health, /metrics
 data/corpus/                 26 synthetic runbooks, incidents and policies
 data/eval/cases.jsonl        32 labeled cases (answerable / insufficient_evidence / ambiguous)
 data/demo_cache/             pre-computed answers for the UI's sample incidents (demo mode)

@@ -43,6 +43,7 @@ from app.schemas import (
     TriageStatus,
     Violation,
 )
+from app.triage import events
 from app.triage.guards import OutputGuards, build_guards
 from app.triage.validate import validate_report
 
@@ -73,6 +74,8 @@ def run_rag(
             "pinned": [e.chunk_id for e in evidence if e.method == "pinned"],
         },
     )
+    events.step_done(retrieve_step)
+    events.evidence(evidence)
 
     result, generate_step = generate_report(
         llm,
@@ -86,6 +89,8 @@ def run_rag(
         result, evidence_ids, require_citations=True,
         guards=guards_for(settings, evidence, TRIAGE_SYSTEM),
     )
+    events.step_done(generate_step)
+    events.step_done(validate_step)
 
     trace = Trace(
         mode="rag",
@@ -122,6 +127,8 @@ def run_no_retrieval(incident: str, *, llm: LLMClient, settings: Settings) -> Tr
         result, set(), require_citations=False,
         guards=guards_for(settings, [], NO_RETRIEVAL_SYSTEM),
     )
+    events.step_done(generate_step)
+    events.step_done(validate_step)
     trace = Trace(
         mode="no_retrieval",
         model=llm.model_name,
@@ -146,6 +153,7 @@ def generate_report(
     ``step_name`` lets the agent label the step "draft" or "repair" in its trace while
     sharing exactly the same call and trace detail as RAG's "generate".
     """
+    events.step_started(step_name)
     t0 = time.perf_counter()
     result = llm.generate_json(
         system=system, user=user, schema=TriageReport, temperature=settings.llm_temperature

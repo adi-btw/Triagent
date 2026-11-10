@@ -15,6 +15,10 @@ Status codes:
     429  demo mode only: per-visitor rate limit or daily model budget (``Retry-After``)
     403  key-free demo only: the incident is not one of the pre-computed samples
 
+``POST /triage/stream`` takes the same body and answers with Server-Sent Events: progress
+while it runs, then the same final body and status in a ``result`` event
+(app/streaming.py).
+
 Handlers are plain ``def`` (not ``async def``): the LLM SDK call is blocking, and
 FastAPI runs sync handlers in a thread pool so one slow call doesn't block the server.
 """
@@ -25,7 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
@@ -42,6 +46,7 @@ from app.llm.errors import LLMCallError
 from app.observability import REGISTRY, RequestContextMiddleware, configure_logging, record_triage
 from app.retrieval.base import Retriever
 from app.schemas import TriageRequest, TriageResponse
+from app.streaming import stream_triage
 from app.triage.service import run_triage
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -120,6 +125,32 @@ def triage(
     return response
 
 
+@app.post(
+    "/triage/stream",
+    response_class=StreamingResponse,
+    responses={200: {"content": {"text/event-stream": {}},
+                     "description": "Server-Sent Events; see app/streaming.py"}},
+    dependencies=[Depends(demo_rate_limit)],
+)
+def triage_stream(
+    http_request: Request,
+    request: TriageRequest,
+    settings: SettingsDep,
+    llm: LLMDep,
+    retriever_provider: RetrieverProviderDep,
+) -> StreamingResponse:
+    """Same input and final body as ``/triage``, with progress events while it runs."""
+
+    def work() -> TriageResponse:
+        retriever = None if request.mode == "no_retrieval" else retriever_provider()
+        return run_triage(request, retriever=retriever, llm=llm, settings=settings)
+
+    body = stream_triage(http_request, work, mode=request.mode, model=llm.model_name,
+                         on_result=lambda r: record_triage(r, settings))
+    return StreamingResponse(body, media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
 @app.get("/health")
 def health(settings: SettingsDep, retriever_provider: RetrieverProviderDep) -> dict[str, Any]:
     """Configuration at a glance, plus whether the index actually loads.
@@ -138,7 +169,8 @@ def health(settings: SettingsDep, retriever_provider: RetrieverProviderDep) -> d
         "embedder": settings.embedder,
         "retrieval_mode": settings.retrieval_mode,
         "llm_provider": settings.llm_provider,
-        "model": settings.gemini_model if settings.llm_provider == "gemini" else "fake-demo",
+        "model": {"gemini": settings.gemini_model, "openai_compat": settings.openai_model}.get(
+            settings.llm_provider, "fake-demo"),
         "llm_key_present": bool(settings.gemini_api_key),
         "index_ok": index_ok,
         "index_error": index_error,

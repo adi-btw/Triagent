@@ -143,6 +143,33 @@ jobs:
           code=$(curl -s -o body.json -w '%{http_code}' -X POST localhost:7860/triage             -H 'Content-Type: application/json'             -d '{"incident": "a brand new incident that was never pre-computed", "mode": "rag"}')
           cat body.json; echo
           test "$code" = "403"
+      - name: Streaming endpoint ends in the same result, or a 403 error event
+        run: |
+          docker exec app python - <<'PY'
+          import json, urllib.request
+          from scripts.seed_demo_cache import sample_incidents
+          samples = sample_incidents(open("app/static/app.js", encoding="utf-8").read())
+          def stream(incident):
+              req = urllib.request.Request(
+                  "http://localhost:7860/triage/stream",
+                  data=json.dumps({"incident": incident, "mode": "agent"}).encode(),
+                  headers={"Content-Type": "application/json"},
+              )
+              events, name = [], None
+              for raw in urllib.request.urlopen(req, timeout=60):
+                  line = raw.decode().strip()
+                  if line.startswith("event:"):
+                      name = line[6:].strip()
+                  elif line.startswith("data:"):
+                      events.append((name, json.loads(line[5:])))
+              return events
+          events = stream(next(iter(samples.values())))
+          print([e for e, _ in events])
+          assert events[0][0] == "started" and events[-1][0] == "result", events[-1]
+          assert events[-1][1]["response"]["status"] == "ok"
+          last = stream("a brand new incident that was never pre-computed")[-1]
+          assert last[0] == "error" and last[1]["http_status"] == 403, last
+          PY
       - name: UI is served
         run: curl -fsS localhost:7860/ | grep -q "Triagent"
       - name: Container logs

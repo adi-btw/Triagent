@@ -54,6 +54,7 @@ from app.schemas import (
     TriageStatus,
     Violation,
 )
+from app.triage import events
 from app.triage.pipeline import generate_report, guards_for, ms_since, validate_output
 
 # LLM calls held back for the draft and its one repair. A new ``decide`` call is only
@@ -82,6 +83,7 @@ class _Run:
     def add(self, step: TraceStep, timing: str | None = None) -> None:
         """Record a step and, if given, add its latency to a timings bucket."""
         self.steps.append(step)
+        events.step_done(step)
         if timing is not None:
             self.timings[timing] = round(self.timings[timing] + step.latency_ms, 2)
 
@@ -183,6 +185,7 @@ def _retrieve(run: _Run, retriever: Retriever, query: str) -> None:
         "pinned": [e.chunk_id for e in run.evidence if e.method == "pinned"],
     }
     run.add(TraceStep(name="retrieve", latency_ms=latency, detail=detail), "retrieval")
+    events.evidence(run.evidence)
 
 
 # --------------------------------------------------------------------------- decisions
@@ -208,6 +211,7 @@ def _blocked_actions(run: _Run) -> dict[AgentAction, str]:
 
 def _decide(run: _Run, llm: LLMClient, allowed: list[AgentAction]) -> AgentDecision:
     """One decision call. Malformed output falls back to ``draft_report`` (recorded)."""
+    events.step_started("decide")
     t0 = time.perf_counter()
     result = llm.generate_json(
         system=DECIDE_SYSTEM,

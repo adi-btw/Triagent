@@ -546,3 +546,14 @@ li.empty { background: transparent !important; border-style: dashed !important; 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Live progress while /triage/stream runs: steps replace the skeleton as they arrive. */
+.live-steps { margin-top: 4px; }
+.live-steps:empty { display: none; }
+.live-steps:not(:empty) ~ .skeleton,
+.live-steps:not(:empty) ~ .skeleton-row { display: none; }
+.kind-running { --c: var(--accent); }
+.kind-running .spinner { width: 12px; height: 12px; border-width: 2px; }
+.live-steps li { animation: step-in 0.18s ease-out; }
+@keyframes step-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .live-steps li { animation: none; } }
