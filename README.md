@@ -188,6 +188,21 @@ labels come from a single labeller, and the corpus and cases share an author (se
 finished in two passes after the key's credits ran out partway through. The second pass replayed answered calls
 from the LLM cache, so latency above comes from the first pass's fresh calls. Details are in the report.
 
+**How far can the judge be trusted?** `python -m eval.judge_calibration` draws 40 judged
+claims, stratified by verdict, for blind re-labelling (see [docs/evaluation.md §9](docs/evaluation.md)).
+A first pass was labelled by a second model (Claude), not a person:
+
+- **Judge precision on "supported": 14/14.** The 75% "claims supported" figure above is not
+  inflated by a lenient judge.
+- **The judge is stricter on everything else.** 16 of its 26 "partially" or "not supported"
+  verdicts would get a more generous label, mostly claims that add an incident detail (a slot
+  name, a version) on top of a correctly cited mechanism.
+- **Agreement:** kappa 0.28 across three classes (fair), 0.57 for supported vs not (moderate).
+  See [eval/results/judge-calibration-second-model.md](eval/results/judge-calibration-second-model.md).
+
+Two models can share blind spots, so human labels are still the reference. The blind labelling page
+and the scorer are ready for them.
+
 Reproduce:
 ```bash
 python -m eval.run_eval --delay 2     # ~190 LLM calls; reruns replay answered calls from .cache/llm
