@@ -1,7 +1,7 @@
 # Stage 4 (optional): QLoRA fine-tuning for severity classification
 
-**Status: not implemented on purpose.** This document lays out what the experiment needs, so you can
-decide whether it's worth running *before* writing any training code.
+**Status: planned.** This document defines the experiment, its data and hardware requirements, and
+the go/no-go criteria that must hold before any training code is written.
 
 ## Where QLoRA fits in this project
 
@@ -11,8 +11,8 @@ decide whether it's worth running *before* writing any training code.
 | Prompting with the policy | What the model is *told* | Severity, since POL-SEV-001 is a short, explicit rubric | Costs tokens on every call; depends on the hosted model |
 | Fine-tuning (QLoRA) | What the model *does by default* | A narrow, stable behavior: mapping incident facts to SEV1–4 | Knowledge that changes (retrain every time a runbook changes) |
 
-The interview-ready sentence: **"Use RAG for knowledge that changes and fine-tuning for behavior that
-doesn't."** Severity classification is a stable behavior with a fixed label set. That makes it a fair
+The guiding rule: **use RAG for knowledge that changes and fine-tuning for behavior that
+doesn't.** Severity classification is a stable behavior with a fixed label set. That makes it a fair
 fine-tuning target, while "know our runbooks" is not.
 
 **What QLoRA is:** the base model's weights are loaded *frozen* in 4-bit (NF4) precision. Small
@@ -55,7 +55,7 @@ which is too wide to detect any realistic fine-tuning gain.
    review a random 20%, and more if disagreement is above 5%. It's fast, but the model can learn the generator's
    phrasing instead of the rubric.
 3. **Public postmortems** (for example, collections of published outage write-ups) as a realism
-   check for the test set only, re-labeled under your own policy.
+   check for the test set only, re-labeled under POL-SEV-001.
 
 **Leakage rules.** Split by *scenario template*, not by row, so paraphrases of one incident
 never land in both train and test. Remove near-duplicates by text similarity. Balance the classes, or
@@ -99,15 +99,15 @@ finetune/
 The evaluation uses **constrained decoding or log-prob scoring** over the 4 labels, so neither model
 can produce an invalid label and the comparison stays fair.
 
-## Decision checklist
+## Go/no-go criteria
 
-Go ahead only if all of these hold:
-- [ ] You'll produce at least about 600 labeled examples (train, validation and test together) and review a sample by hand.
-- [ ] You have a CUDA GPU available (Colab or Kaggle is fine).
-- [ ] Stage-3 results show severity errors worth fixing, or you want a small offline classifier.
-- [ ] You'll report the result even if fine-tuning doesn't help.
+Proceed only if all of these hold:
+- [ ] At least ~600 labeled examples (train + validation + test), with a hand-reviewed sample.
+- [ ] A CUDA GPU is available (Colab or Kaggle is sufficient).
+- [ ] Stage-3 results show severity errors worth fixing, or a small offline classifier is needed.
+- [ ] The result is reported even if fine-tuning doesn't help.
 
-### Likely interview questions
+### Design FAQ
 1. *Why QLoRA rather than full fine-tuning?* Memory. A frozen 4-bit base plus adapters trains a 7B model on one
    24 GB GPU, while full fine-tuning would need several 80 GB GPUs. The quality is close to 16-bit LoRA on most tasks.
 2. *Why not fine-tune the runbooks into the model?* They change. RAG updates as soon as you re-ingest and

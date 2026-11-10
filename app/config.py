@@ -26,9 +26,11 @@ class Settings(BaseSettings):
     # Generation
     llm_provider: Literal["gemini", "fake"] = "gemini"
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.8-flash"
+    # Reasoning depth for Gemini 3.x models; None leaves the model's default (slower).
+    gemini_thinking_level: Literal["minimal", "low", "medium", "high"] | None = "low"
     llm_temperature: float = 0.0
-    llm_timeout_s: float = 60.0
+    llm_timeout_s: float = 120.0
 
     # Retrieval
     top_k: int = 5

@@ -132,7 +132,7 @@ because the same bad request will fail the same way. A reply that isn't valid JS
 not an exception: it becomes `parsed=None` and then a `schema_error`. It's a fact about
 model quality that the eval should count, not an outage.
 
-## Interview questions
+## Design FAQ
 
 **Q: The output is schema-constrained. Why do you still validate?**
 A: The schema constrains shape, not truth. It can't know which chunk ids were retrieved

@@ -206,7 +206,7 @@ Observations worth saying out loud:
 * On this tiny corpus even vector search finds `EAI_AGAIN` → RB-NET-002#s1, because only
   one chunk is about DNS. The BM25 advantage on exact tokens grows with corpus size.
 
-## 10. Interview questions
+## 10. Design FAQ
 
 **Why chunk by section rather than by fixed token windows?** Sections are the natural
 unit a human cites, and their IDs stay stable under edits, which the citation validator

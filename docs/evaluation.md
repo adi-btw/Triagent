@@ -140,15 +140,14 @@ that cannot ask. Also note the scripted answers are cleaner than real users' rep
 ## 7. Reproduce
 
 Prerequisites: `.env` with `GEMINI_API_KEY`, the index built (`python -m scripts.ingest`),
-and the agent mode merged (before stage 2 merged, the `agent` column was all `AgentNotAvailable` errors,
-which the report shows).
+and a model your key can call (`GEMINI_MODEL`).
 
 PowerShell (Windows):
 
 ```powershell
 .venv\Scripts\python.exe -m scripts.ingest
 .venv\Scripts\python.exe -m eval.retrieval_eval --modes vector keyword hybrid --k 5
-$env:JUDGE_MODEL = "gemini-2.5-pro"   # optional: a different, stronger judge
+$env:JUDGE_MODEL = "<stronger model>"   # optional: a different, stronger judge
 .venv\Scripts\python.exe -m eval.run_eval --modes no_retrieval rag agent --delay 7
 # quick check on two cases, no judge:
 .venv\Scripts\python.exe -m eval.run_eval --modes rag --cases case-001,case-005 --no-judge
@@ -161,7 +160,7 @@ bash:
 ```bash
 python -m scripts.ingest
 python -m eval.retrieval_eval --modes vector keyword hybrid --k 5
-JUDGE_MODEL=gemini-2.5-pro python -m eval.run_eval --modes no_retrieval rag agent --delay 7
+JUDGE_MODEL=<stronger-model> python -m eval.run_eval --modes no_retrieval rag agent --delay 7
 python -m eval.run_eval --modes rag --cases case-001,case-005 --no-judge
 LLM_PROVIDER=fake python -m eval.run_eval --fake-retriever --out .cache/smoke
 ```
@@ -187,8 +186,10 @@ Roughly 1.5-2.5k input and 0.3-0.5k output tokens per generation call, about 1-2
 judge call, so a full run is on the order of 0.5M input and 0.1M output tokens. At paid
 Flash-class prices that is cents to well under a dollar; check the provider's current price
 list. The real constraint is the **free-tier rate limit** (requests per minute and per day):
-`--delay 7` keeps you under ~10 requests/minute; if the daily cap is lower than ~300, split
-the run with `--cases` / `--modes` across days, or use `--no-judge` and judge later. The
+`--delay 7` keeps you under ~10 requests/minute. The daily cap matters more: on the free tier,
+`gemini-3.8-flash` allows **20 requests per day** (measured 2026-11-09), so a full run needs a
+paid-tier key. On the free tier, run a slice per day with `--cases` / `--modes` and
+`--no-judge`, or switch `GEMINI_MODEL` to a model with a higher free quota and record that. The
 summary records the actual `llm_calls_total` and `judge_calls_total`, so replace these
 estimates with measured numbers after the first real run. `retrieval_eval` costs 0 calls.
 
@@ -217,7 +218,7 @@ author (retrieval likely optimistic); claim support is an LLM judgement calibrat
 human labels; ambiguous cases favour the agent by design.
 ```
 
-## Interview questions
+## Design FAQ
 
 1. **Why run the same model in all three modes?** To isolate the variable. With the model,
    temperature, schema and validator fixed, a difference between `no_retrieval` and `rag` can

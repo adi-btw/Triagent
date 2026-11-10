@@ -28,5 +28,6 @@ def build_llm(settings: Settings) -> LLMClient:
             api_key=settings.gemini_api_key,
             model=settings.gemini_model,
             timeout_s=settings.llm_timeout_s,
+            thinking_level=settings.gemini_thinking_level,
         )
     raise LLMConfigError(f"Unknown llm_provider: {settings.llm_provider!r}")

@@ -2,10 +2,10 @@
 
 The first group runs offline against a fake SDK client (retry policy, parsing, token
 counts). The last test is a real API call: marked ``slow`` (deselected by default) and
-skipped unless GEMINI_API_KEY is set. Run it with ``pytest -m slow tests/test_gemini_live.py``.
+skipped unless GEMINI_API_KEY is set (environment or .env).
+Run it with ``pytest -m slow tests/test_gemini_live.py``.
 """
 
-import os
 from types import SimpleNamespace
 
 import httpx
@@ -14,6 +14,7 @@ from google.genai import errors as genai_errors
 
 from app.config import Settings
 from app.llm.errors import LLMCallError
+from app.llm.factory import build_llm
 from app.llm.gemini import GeminiClient
 from app.schemas import TriageReport
 from app.triage.pipeline import run_rag
@@ -96,10 +97,10 @@ def test_does_not_retry_client_errors():
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(not os.environ.get("GEMINI_API_KEY"), reason="needs GEMINI_API_KEY")
+@pytest.mark.skipif(not Settings().gemini_api_key, reason="needs GEMINI_API_KEY")
 def test_live_gemini_on_demo_incident():
-    settings = Settings(llm_provider="gemini", gemini_api_key=os.environ["GEMINI_API_KEY"])
-    llm = GeminiClient(api_key=settings.gemini_api_key or "", model=settings.gemini_model)
+    settings = Settings(llm_provider="gemini")
+    llm = build_llm(settings)
     with open("data/demo_incident.txt", encoding="utf-8") as fh:
         incident = fh.read()
     resp = run_rag(incident, retriever=FakeRetriever(DEMO_EVIDENCE), llm=llm, settings=settings)

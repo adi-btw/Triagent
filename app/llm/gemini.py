@@ -64,13 +64,19 @@ class GeminiClient:
         *,
         api_key: str,
         model: str,
-        timeout_s: float = 60.0,
+        timeout_s: float = 120.0,
+        thinking_level: str | None = None,
         max_retries: int = 2,
         backoff_base_s: float = 1.0,
         client: Any | None = None,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self.model_name = model
+        # Gemini 3.x models reason before answering. Triage over evidence already in the
+        # prompt doesn't need deep reasoning; "low" cuts latency a lot. None = model default.
+        self._thinking = (
+            types.ThinkingConfig(thinking_level=thinking_level.upper()) if thinking_level else None
+        )
         self._max_retries = max_retries
         self._backoff_base_s = backoff_base_s
         self._sleep = sleep
@@ -93,6 +99,7 @@ class GeminiClient:
             response_mime_type="application/json",
             response_json_schema=to_gemini_json_schema(schema),
             temperature=temperature,
+            thinking_config=self._thinking,
         )
         start = time.perf_counter()
         response = self._call_with_retries(user, config)

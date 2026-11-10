@@ -180,7 +180,7 @@ The response's `trace` is the same object for every mode: `steps` (name, latency
 - **The CLI** (`scripts/triage_cli.py`) prints the report but not the clarifying question
   for `needs_clarification`; use `--json` or the UI.
 
-## 8. Interview questions
+## 8. Design FAQ
 
 1. **Why is this "agentic" if the model only picks among three actions?**
    The model chooses the control flow (search again, ask, or answer) based on what it sees.

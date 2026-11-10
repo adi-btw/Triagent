@@ -139,7 +139,7 @@ data/corpus/                 26 synthetic runbooks, incidents and policies
 data/eval/cases.jsonl        32 labeled cases (answerable / insufficient_evidence / ambiguous)
 eval/                        run_eval, retrieval_eval, metrics, judge, report
 finetune/README.md           stage 4 requirements (not implemented yet)
-docs/                        one teaching doc per stage, each with interview questions
+docs/                        design notes per subsystem: decisions, trade-offs, FAQ
 ```
 
 ## Known limitations
@@ -149,4 +149,4 @@ docs/                        one teaching doc per stage, each with interview que
 - With 32 cases, every percentage carries a wide interval, and a single case is about 3 points.
 - The citation allow-list proves the model cited something it was *shown*. It does not prove the passage
   *supports* the claim. That's measured by the LLM judge, which should be spot-checked by a human.
-- The Postgres store is covered by tests but hasn't run here yet, because Docker wasn't installed.
+- The Postgres store has integration tests (`-m postgres`) that haven't yet been run against a live database.
