@@ -89,6 +89,7 @@ def test_json_log_event_has_fields_but_no_incident_text(client, capsys):
     assert all("too many clients" not in json.dumps(r) for r in lines)
     access = next(r for r in lines if r.get("event") == "http_request")
     assert access["status_code"] == 200 and access["route"] == "/triage"
+    assert access["request_id"] == "req-42"  # set explicitly after the context resets
 
 
 def test_cost_only_when_prices_are_configured():

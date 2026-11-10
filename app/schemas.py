@@ -92,6 +92,11 @@ ViolationType = Literal[
     "unknown_citation",  # cited id not in the retrieved evidence
     "missing_citation",  # cause/step/severity without a citation
     "inconsistent_abstention",  # severity set while insufficient_evidence, or vice versa
+    # Output guards (app/triage/guards.py): hold even against a fully compromised model.
+    "severity_not_from_policy",  # severity justified by something other than the policy
+    "unsafe_action",  # a cause/step recommends a destructive operation
+    "untrusted_link",  # a URL whose host is not on ALLOWED_LINK_DOMAINS
+    "prompt_leak",  # output repeats the system prompt
 ]
 
 

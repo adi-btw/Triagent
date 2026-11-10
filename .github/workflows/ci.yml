@@ -35,6 +35,8 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: pytest -q
+      - name: Prompt-injection red team (worst-case model, no LLM)
+        run: python -m eval.redteam --check
 
   retrieval:
     name: Retrieval regression gate

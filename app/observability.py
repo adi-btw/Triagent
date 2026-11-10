@@ -67,9 +67,27 @@ class JsonFormatter(logging.Formatter):
 
 
 class _RequestIdFilter(logging.Filter):
+    """Fill ``request_id`` from the context, unless the call passed one explicitly (the
+    access log line is written after the request's context has been reset)."""
+
     def filter(self, record: logging.LogRecord) -> bool:
-        record.request_id = request_id_var.get()
+        if not hasattr(record, "request_id"):
+            record.request_id = request_id_var.get()
         return True
+
+
+class TextFormatter(logging.Formatter):
+    """Human-readable line for local runs: ``... [request-id] event key=value ...``."""
+
+    def __init__(self) -> None:
+        super().__init__("%(asctime)s %(levelname)s [%(request_id)s] %(message)s")
+
+    def format(self, record: logging.LogRecord) -> str:
+        line = super().format(record)
+        fields = {k: v for k, v in (getattr(record, "event_fields", {}) or {}).items()
+                  if k != "event" and v not in (None, [], "")}
+        return line + ("" if not fields else " " + " ".join(f"{k}={v}" for k, v in
+                                                            fields.items()))
 
 
 def configure_logging(settings: Settings) -> None:
@@ -83,9 +101,7 @@ def configure_logging(settings: Settings) -> None:
     if settings.log_format == "json":
         handler.setFormatter(JsonFormatter())
     else:
-        handler.setFormatter(
-            logging.Formatter("%(asctime)s %(levelname)s [%(request_id)s] %(message)s")
-        )
+        handler.setFormatter(TextFormatter())
     logger.addHandler(handler)
     logger.setLevel(settings.log_level.upper())
     logger.propagate = False
@@ -226,7 +242,20 @@ def _get_tracer():
     if _tracer is None:
         from opentelemetry import trace
 
-        _tracer = trace.get_tracer("triagent")
+        try:  # SDK + OTLP exporter installed (pip install -e ".[otel]"): export for real.
+            from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+            from opentelemetry.sdk.resources import Resource
+            from opentelemetry.sdk.trace import TracerProvider
+            from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+            provider = TracerProvider(resource=Resource.create({"service.name": "triagent"}))
+            # Endpoint, headers etc. come from the standard OTEL_EXPORTER_OTLP_* variables.
+            provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+            _tracer = provider.get_tracer("triagent")
+        except ImportError:
+            logger.warning("OTEL_ENABLED but opentelemetry-sdk / OTLP exporter not installed; "
+                           "spans are dropped. Install with: pip install -e '.[otel]'")
+            _tracer = trace.get_tracer("triagent")
     return _tracer
 
 

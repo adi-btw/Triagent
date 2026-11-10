@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     llm_price_input_per_mtok: float | None = None
     llm_price_output_per_mtok: float | None = None
 
+    # Output guards (app/triage/guards.py), applied after the citation checks.
+    output_guards: bool = True
+    severity_policy_doc_ids: list[str] = ["POL-SEV-001"]
+    allowed_link_domains: list[str] = [".internal"]
+
     # Public demo guardrails (app/demo.py). Off locally; the deployment turns them on.
     demo_mode: bool = False
     demo_requests_per_ip_per_hour: int = 20

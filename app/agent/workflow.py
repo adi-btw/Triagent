@@ -54,7 +54,7 @@ from app.schemas import (
     TriageStatus,
     Violation,
 )
-from app.triage.pipeline import generate_report, ms_since, validate_output
+from app.triage.pipeline import generate_report, guards_for, ms_since, validate_output
 
 # LLM calls held back for the draft and its one repair. A new ``decide`` call is only
 # made if it leaves room for both, so exploring can never starve the report.
@@ -296,6 +296,7 @@ def _draft(run: _Run, llm: LLMClient) -> tuple[TriageReport | None, list[Violati
     The repair counts toward the step budget like any other LLM call.
     """
     allowed_ids = {e.chunk_id for e in run.evidence}
+    guards = guards_for(run.settings, run.evidence, TRIAGE_SYSTEM)
     result, step = generate_report(
         llm,
         system=TRIAGE_SYSTEM,
@@ -305,7 +306,9 @@ def _draft(run: _Run, llm: LLMClient) -> tuple[TriageReport | None, list[Violati
     )
     run.llm_calls += 1
     run.add(step, "generation")
-    report, violations, check = validate_output(result, allowed_ids, require_citations=True)
+    report, violations, check = validate_output(
+        result, allowed_ids, require_citations=True, guards=guards
+    )
     run.add(check, "validation")
     if not violations:
         return report, violations
@@ -328,7 +331,9 @@ def _draft(run: _Run, llm: LLMClient) -> tuple[TriageReport | None, list[Violati
     }
     run.llm_calls += 1
     run.add(step, "generation")
-    report, violations, check = validate_output(result, allowed_ids, require_citations=True)
+    report, violations, check = validate_output(
+        result, allowed_ids, require_citations=True, guards=guards
+    )
     run.add(check, "validation")
     return report, violations
 

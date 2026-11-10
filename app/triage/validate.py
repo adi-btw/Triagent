@@ -19,6 +19,8 @@ from typing import Any
 from pydantic import ValidationError
 
 from app.schemas import TriageReport, Violation
+from app.triage import guards as output_guards
+from app.triage.guards import OutputGuards
 
 
 def validate_report(
@@ -26,6 +28,7 @@ def validate_report(
     evidence_ids: set[str],
     *,
     require_citations: bool,
+    guards: OutputGuards | None = None,
 ) -> tuple[TriageReport | None, list[Violation]]:
     """Parse ``raw`` into a ``TriageReport`` and list every rule it breaks.
 
@@ -34,6 +37,8 @@ def validate_report(
         evidence_ids: chunk ids that were in the prompt; the citation allow-list.
         require_citations: True in RAG mode. False for the no-retrieval baseline, which
             has nothing to cite, but is still penalised for citing ids that don't exist.
+        guards: optional output guards (severity provenance, unsafe actions, untrusted
+            links, prompt leaks). None skips them.
 
     Returns:
         ``(report, violations)``. ``report`` is None only on ``schema_error``.
@@ -48,6 +53,8 @@ def validate_report(
     if require_citations:
         violations += _missing_citations(report)
     violations += _inconsistent_abstention(report)
+    if guards is not None:
+        violations += output_guards.check(report, guards)
     return report, violations
 
 

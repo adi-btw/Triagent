@@ -43,6 +43,7 @@ from app.schemas import (
     TriageStatus,
     Violation,
 )
+from app.triage.guards import OutputGuards, build_guards
 from app.triage.validate import validate_report
 
 
@@ -82,7 +83,8 @@ def run_rag(
 
     evidence_ids = {e.chunk_id for e in evidence}
     report, violations, validate_step = validate_output(
-        result, evidence_ids, require_citations=True
+        result, evidence_ids, require_citations=True,
+        guards=guards_for(settings, evidence, TRIAGE_SYSTEM),
     )
 
     trace = Trace(
@@ -116,7 +118,10 @@ def run_no_retrieval(incident: str, *, llm: LLMClient, settings: Settings) -> Tr
         settings=settings,
     )
     # Empty allow-list: every id the baseline cites is, by definition, invented.
-    report, violations, validate_step = validate_output(result, set(), require_citations=False)
+    report, violations, validate_step = validate_output(
+        result, set(), require_citations=False,
+        guards=guards_for(settings, [], NO_RETRIEVAL_SYSTEM),
+    )
     trace = Trace(
         mode="no_retrieval",
         model=llm.model_name,
@@ -161,19 +166,32 @@ def generate_report(
     return result, step
 
 
+def guards_for(settings: Settings, evidence: list[Evidence], system: str) -> OutputGuards | None:
+    """Output guards for one request, or None when ``OUTPUT_GUARDS=false``."""
+    if not settings.output_guards:
+        return None
+    return build_guards(evidence, policy_doc_ids=settings.severity_policy_doc_ids,
+                        allowed_link_domains=settings.allowed_link_domains,
+                        system_prompt=system)
+
+
 def validate_output(
-    result: LLMResult, evidence_ids: set[str], *, require_citations: bool
+    result: LLMResult, evidence_ids: set[str], *, require_citations: bool,
+    guards: OutputGuards | None = None,
 ) -> tuple[TriageReport | None, list[Violation], TraceStep]:
     """Timed ``validate_report`` on an LLM result. Public so the agent reuses it."""
     t0 = time.perf_counter()
     # Prefer the client's parse; fall back to raw text so the validator can explain why.
     raw: dict[str, Any] | str = result.parsed if result.parsed is not None else result.text
-    report, violations = validate_report(raw, evidence_ids, require_citations=require_citations)
+    report, violations = validate_report(
+        raw, evidence_ids, require_citations=require_citations, guards=guards
+    )
     step = TraceStep(
         name="validate",
         latency_ms=ms_since(t0),
         detail={
             "require_citations": require_citations,
+            "output_guards": guards is not None,
             "allowed_ids": sorted(evidence_ids),
             "violations": [v.model_dump() for v in violations],
         },

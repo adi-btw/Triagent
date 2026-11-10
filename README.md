@@ -106,7 +106,7 @@ Every push runs [CI](.github/workflows/ci.yml):
 
 | Job | What it proves |
 |---|---|
-| Lint and unit tests (Python 3.11, 3.12) | `ruff` plus 330+ hermetic tests with fakes, no network |
+| Lint and unit tests (Python 3.11, 3.12) | `ruff`, 360+ hermetic tests with fakes (no network), and the prompt-injection red team |
 | Retrieval regression gate | Builds the real index and fails if hybrid primary-doc hit, recall or MRR drops below the thresholds in `eval/retrieval_gate.py` |
 | Postgres + pgvector | Runs the store integration tests against a live `pgvector` service, then ingests the corpus into Postgres and runs the same retrieval gate on it |
 | Docker image | Builds the image, starts it with an *invalid* API key, and checks that every sample incident is served from the demo cache in every mode |
@@ -193,6 +193,38 @@ Reproduce:
 python -m eval.run_eval --delay 2     # ~190 LLM calls; reruns replay answered calls from .cache/llm
 ```
 
+### Prompt-injection red team
+
+`python -m eval.redteam` replays 16 injection attacks, delivered through poisoned runbooks or
+through the incident text, using a stand-in model that **obeys every injected instruction**.
+That measures what the code guarantees whatever the model does. It's free and deterministic,
+and it runs in CI.
+
+| Defenses | Attacks that succeed |
+|---|---|
+| None (model output shown as-is) | 16/16 |
+| Citation validator (stage 1) | 12/16 |
+| Validator + output guards | **2/16** |
+
+The citation validator stops forged citations, but not a poisoned runbook whose payload is cited
+*correctly*. The output guards close that gap:
+- a severity must cite the severity policy;
+- no destructive commands (`DROP TABLE`, `rm -rf`, `curl … | sh`, disabling auth…);
+- no links outside allowed domains;
+- no leaked system prompt.
+
+On all 96 real eval reports the guards flag **0 false positives**. The 2 remaining attacks need
+semantic understanding to catch, and are documented as residual risk. See
+[docs/security.md](docs/security.md).
+
+## Observability
+
+Every request gets an `X-Request-ID` and emits JSON logs (`LOG_FORMAT=json`), with no incident
+text in them. Prometheus metrics at `/metrics` cover latency per pipeline and step, LLM calls,
+tokens, cost, cache hits, violations by type and severity mix. Optional OpenTelemetry spans give
+one child span per pipeline step. All three come from the same per-request trace the API returns.
+See [docs/observability.md](docs/observability.md).
+
 ## Repository layout
 
 ```
@@ -203,14 +235,17 @@ app/
   store/                     memory store (numpy + BM25) and Postgres store (pgvector + tsvector)
   retrieval/                 vector / keyword / hybrid (RRF) retriever, optional cross-encoder rerank
   llm/                       Gemini client (JSON schema output, retries), disk cache, fake LLMs, prompts
-  triage/                    validator, RAG and no-retrieval pipelines, service entry point
+  triage/                    validator, output guards, RAG and no-retrieval pipelines, service
   agent/                     bounded decision loop, AgentDecision schema, agent prompts
   static/                    demo UI (plain HTML/JS, no build step)
-  main.py                    FastAPI: POST /triage, GET /health, UI at /
+  observability.py           request ids, JSON logs, Prometheus metrics, OpenTelemetry spans
+  demo.py                    public-demo guardrails (key-free mode, rate limits, budget)
+  main.py                    FastAPI: POST /triage, GET /health, GET /metrics, UI at /
 data/corpus/                 26 synthetic runbooks, incidents and policies
 data/eval/cases.jsonl        32 labeled cases (answerable / insufficient_evidence / ambiguous)
 data/demo_cache/             pre-computed answers for the UI's sample incidents (demo mode)
-eval/                        run_eval, retrieval_eval, retrieval_gate (CI), metrics, judge, report
+data/redteam/attacks.json    16 prompt-injection attacks (poisoned docs and incident text)
+eval/                        run_eval, retrieval_eval, retrieval_gate (CI), redteam (CI), metrics, judge
 finetune/README.md           stage 4 requirements (not implemented yet)
 docs/                        design notes per subsystem: decisions, trade-offs, FAQ
 Dockerfile  render.yaml      container with baked-in index; Render blueprint (docs/deploy.md)
