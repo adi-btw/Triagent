@@ -29,6 +29,10 @@ def store() -> Iterator[object]:
     try:
         admin = psycopg.connect(URL, autocommit=True, connect_timeout=3)
     except psycopg.OperationalError as exc:
+        # CI sets REQUIRE_POSTGRES=1 so a missing database fails the job instead of
+        # silently skipping every test and reporting green.
+        if os.environ.get("REQUIRE_POSTGRES") == "1":
+            pytest.fail(f"Postgres required but not reachable at DATABASE_URL: {exc}")
         pytest.skip(f"Postgres not reachable at DATABASE_URL: {exc}")
     admin.execute(f"DROP SCHEMA IF EXISTS {SCHEMA} CASCADE")
     admin.execute(f"CREATE SCHEMA {SCHEMA}")
