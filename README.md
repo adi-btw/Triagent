@@ -14,7 +14,7 @@ It's built in three stages, and each one can be measured against the others:
 | 1. Basic RAG | Chunking, local embeddings, vector / BM25 / hybrid retrieval, a report checked against a schema, and a **citation allow-list** enforced in code | [docs/retrieval.md](docs/retrieval.md), [docs/generation-and-validation.md](docs/generation-and-validation.md) |
 | 2. Agentic workflow | The model chooses to *draft*, *rewrite the query and retry once*, or *ask one clarifying question*. The app enforces every limit. Each step shows in the UI | [docs/agent.md](docs/agent.md) |
 | 3. Evaluation | 32 labeled cases; the same model compared with no retrieval, with RAG, and as an agent; LLM-as-judge for claim support; bootstrap CIs | [docs/evaluation.md](docs/evaluation.md), [data/eval/README.md](data/eval/README.md) |
-| 4. QLoRA (optional) | Dataset and hardware requirements for fine-tuning a small severity classifier, written up before any decision to build it | [finetune/README.md](finetune/README.md) |
+| 4. QLoRA | A 1.5B open model fine-tuned as a severity classifier: 1,360 rubric-labelled incidents split by scenario template, 4-bit QLoRA on a free Colab T4, compared with the same model zero-shot (28% baseline) | [finetune/README.md](finetune/README.md), [finetune/results/](finetune/results/) |
 
 ![Triagent: agent-mode triage of a checkout outage, with severity, cited causes and next steps, the pipeline trace and the evidence](docs/images/triagent-report.png)
 
@@ -336,7 +336,7 @@ data/demo_cache/             pre-computed answers for the UI's sample incidents 
 data/redteam/attacks.json    16 prompt-injection attacks (poisoned docs and incident text)
 examples/                    sample Alertmanager webhook payload
 eval/                        run_eval, feedback (report + case export), retrieval_eval, retrieval_gate (CI), redteam (CI), metrics, judge
-finetune/README.md           stage 4 requirements (not implemented yet)
+finetune/                    stage 4: dataset builder, QLoRA training, evaluation, Colab notebook, results
 docs/                        design notes per subsystem: decisions, trade-offs, FAQ
 Dockerfile  render.yaml      container with baked-in index; Render blueprint (docs/deploy.md)
 .github/workflows/ci.yml     lint, tests, retrieval gate, Postgres, Docker smoke test

@@ -1,0 +1,8 @@
+# Fine-tuning stack, kept apart from the app (which never imports torch).
+# torch comes from the environment: Colab ships a CUDA build; locally use the CPU wheel:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+transformers==4.46.3
+peft==0.13.2
+accelerate==1.1.1
+datasets==3.1.0
+bitsandbytes==0.45.0; sys_platform == "linux"   # 4-bit kernels, CUDA only

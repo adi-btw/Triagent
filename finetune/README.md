@@ -1,7 +1,30 @@
 # Stage 4 (optional): QLoRA fine-tuning for severity classification
 
-**Status: planned.** This document defines the experiment, its data and hardware requirements, and
-the go/no-go criteria that must hold before any training code is written.
+**Status: built; zero-shot baseline measured; training runs on a free Colab T4.** This
+document defines the experiment, the data and hardware it needs, and the go/no-go
+criteria that were checked before the training code was written. The dataset, training
+and evaluation code are below. Results are in [results/](results/).
+
+## Running it (free)
+
+```bash
+python -m finetune.build_dataset     # regenerate finetune/data (deterministic; already committed)
+python -m finetune.make_bundle       # -> finetune/outputs/triagent_finetune.zip
+```
+
+1. Open [colab_train.ipynb](colab_train.ipynb) in Google Colab (*File → Upload notebook*).
+2. Choose *Runtime → Change runtime type → T4 GPU*, then *Run all*.
+3. Upload `triagent_finetune.zip` when step 2 asks for it. About 30–40 minutes later the
+   notebook downloads `triagent_finetune_results.zip`. Unzip it into `finetune/`.
+
+Locally, without a GPU, the same scripts run on CPU for checking. Training then uses plain
+LoRA, because the 4-bit kernels need CUDA:
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r finetune/requirements.txt
+python -m finetune.evaluate --out finetune/results/base-cpu.json                  # zero-shot baseline
+python -m finetune.train_qlora --no-4bit --max-steps 3 --limit 16 --base Qwen/Qwen2.5-0.5B-Instruct  # loop check
+```
 
 ## Where QLoRA fits in this project
 
@@ -85,27 +108,54 @@ instruct model has a permissive license when you start. The names above are exam
 `accelerate`. Pin the versions in a separate `finetune/requirements.txt`, so the main app never depends
 on CUDA.
 
-## What would get built (if you go ahead)
+## What was built
 
 ```
 finetune/
-├── build_dataset.py     # templates → train/val/test JSONL, split by template, label checks
-├── train_qlora.py       # 4-bit NF4 base + LoRA (r=16, alpha=32, dropout 0.05), completion-only loss
-├── evaluate.py          # base vs fine-tuned on test.jsonl: accuracy, macro-F1, within-one, confusion,
-│                        #   bootstrap CIs, invalid-label rate, latency per example
-└── colab_train.ipynb    # thin wrapper that runs the scripts on a T4
+├── build_dataset.py     # 32 scenario templates -> 1,000 / 160 / 200 rows, split by template,
+│                        #   labels computed from POL-SEV-001 by one tested function
+├── common.py            # chat-template prompt + constrained label scoring, shared by both
+├── train_qlora.py       # 4-bit NF4 base + LoRA (r=16, alpha=32, dropout 0.05) on all
+│                        #   attention/MLP projections, completion-only loss, best epoch by val loss
+├── evaluate.py          # base vs fine-tuned: accuracy + bootstrap CI, paired CI on the difference,
+│                        #   macro-F1, within-one, boundary cases, per-template, confusion, latency
+├── make_bundle.py       # zip of code + data to upload to Colab (the repo is private)
+├── colab_train.ipynb    # baseline -> train -> evaluate -> compare, on a free T4
+├── data/                # the generated dataset (committed; a test checks it matches the builder)
+└── results/             # result JSON per model, and README.md with the comparison
 ```
 
-The evaluation uses **constrained decoding or log-prob scoring** over the 4 labels, so neither model
-can produce an invalid label and the comparison stays fair.
+**Labels are computed, not annotated.** Each row is generated from facts (service, error
+rate, p95 multiple, outage, data loss or exposure, internal system with or without a
+workaround), and the text is rendered from the same facts. `label(facts)` implements
+POL-SEV-001 clause by clause, and a parametrised test pins every clause, including
+the inclusive 5% and 50% edges and the strict "> 3x". This is option 1 above, with the
+rubric check built in.
+
+**Hard on purpose.** Error rates appear as percentages, as counts ("96 of 2,000
+requests") or as ratios. Latency appears as two durations the model has to divide. A
+quarter of the service rows sit on a rubric boundary (4–6%, 48–55%, 2.6–3.4x). Most
+templates produce several classes, so the template alone doesn't give the answer away.
+
+**Leakage checks** (in `data/stats.json`): templates are disjoint across splits, which a
+test checks. The highest word-overlap (Jaccard) between any test row and any training row
+is 0.65, from shared phrasing such as "p95 went from", not shared incidents. Against the
+32 stage-3 eval cases it's 0.33.
+
+**Scoring is constrained.** Each of SEV1–SEV4 is scored by log-probability after the chat
+prompt. For Qwen's tokenizer the labels share the prefix `SE` `V`, so it takes one
+forward pass and four logits. Neither model can produce an invalid label.
 
 ## Go/no-go criteria
 
 Proceed only if all of these hold:
-- [ ] At least ~600 labeled examples (train + validation + test), with a hand-reviewed sample.
-- [ ] A CUDA GPU is available (Colab or Kaggle is sufficient).
-- [ ] Stage-3 results show severity errors worth fixing, or a small offline classifier is needed.
-- [ ] The result is reported even if fine-tuning doesn't help.
+- [x] At least ~600 labeled examples: 1,360, with labels computed by a tested rubric function
+  rather than hand-reviewed.
+- [x] A CUDA GPU is available: free Colab T4.
+- [x] Stage-3 results show severity errors worth fixing: the local qwen2.5:3b got only 66% exact
+  severity (README, model comparison), and a small offline classifier is useful.
+- [x] The result is reported even if fine-tuning doesn't help: `evaluate compare` states the
+  paired CI and verdict whatever it is.
 
 ### Design FAQ
 1. *Why QLoRA rather than full fine-tuning?* Memory. A frozen 4-bit base plus adapters trains a 7B model on one

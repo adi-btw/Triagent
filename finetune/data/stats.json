@@ -1,0 +1,73 @@
+{
+  "seed": 20261110,
+  "sizes": {
+    "train": 1000,
+    "val": 160,
+    "test": 200
+  },
+  "labels": {
+    "train": {
+      "SEV1": 250,
+      "SEV2": 250,
+      "SEV3": 250,
+      "SEV4": 250
+    },
+    "val": {
+      "SEV1": 40,
+      "SEV2": 40,
+      "SEV3": 40,
+      "SEV4": 40
+    },
+    "test": {
+      "SEV1": 50,
+      "SEV2": 50,
+      "SEV3": 50,
+      "SEV4": 50
+    }
+  },
+  "templates": {
+    "train": [
+      "admin_console_down",
+      "az_network_partition",
+      "ci_down",
+      "dashboard_units",
+      "db_pool_exhaustion",
+      "dependency_timeout",
+      "deploy_regression",
+      "disk_full",
+      "feature_flag_bug",
+      "flapping_alert",
+      "leaked_credentials",
+      "migration_data_loss",
+      "observability_down",
+      "oom_crashloop",
+      "rate_limit_misconfig",
+      "replica_data_loss",
+      "slow_query_lock",
+      "third_party_outage",
+      "ui_typo",
+      "warehouse_job_failed"
+    ],
+    "val": [
+      "dns_failure",
+      "gc_pauses",
+      "log_volume_spike",
+      "pii_in_logs",
+      "vpn_outage"
+    ],
+    "test": [
+      "autoscaler_stuck",
+      "cache_stampede",
+      "cert_expiry",
+      "pipeline_broken",
+      "public_bucket",
+      "queue_backlog",
+      "staging_down"
+    ]
+  },
+  "leakage_max_jaccard": {
+    "test_vs_train": 0.647,
+    "test_vs_eval_cases": 0.326,
+    "train_vs_eval_cases": 0.327
+  }
+}
