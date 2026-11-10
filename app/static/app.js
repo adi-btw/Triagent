@@ -114,6 +114,7 @@ async function submitTriage(payload) {
     $("empty").hidden = false;
     const titles = {
       422: "The request was rejected",
+      429: "Demo limit reached",
       501: "This mode is not available on the server",
       502: "The language model provider failed",
       503: "The server is not fully configured",
@@ -358,6 +359,12 @@ async function loadHealth() {
       : `${h.model} · ${h.retrieval_mode}`;
     pill.title = `backend: ${h.backend}, embedder: ${h.embedder}, provider: ${h.llm_provider}` +
       (h.index_error ? `\n${h.index_error}` : "");
+    if (h.demo_mode) {
+      const note = $("demo-note");
+      note.textContent = "Public demo. The sample incidents are pre-computed and load instantly; " +
+        `custom incidents call the model live, up to ${h.demo_requests_per_hour} per hour per visitor.`;
+      note.hidden = false;
+    }
   } catch {
     pill.dataset.state = "bad";
     $("health-text").textContent = "Server unreachable";
@@ -423,5 +430,21 @@ $("clarify-form").addEventListener("submit", (event) => {
   submitTriage({ ...lastRequest, clarification });
 });
 
+// Deep link: /?sample=checkout|vague[&mode=no_retrieval|rag|agent] loads a sample and runs
+// it, so a README or résumé link can open straight onto a finished report.
+function runSampleFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const samples = { checkout: DEMO_INCIDENT, vague: VAGUE_INCIDENT };
+  const incident = samples[params.get("sample")];
+  if (!incident) return;
+  const mode = params.get("mode") || "agent";
+  const radio = document.querySelector(`input[name="mode"][value="${CSS.escape(mode)}"]`);
+  if (radio) radio.checked = true;
+  $("incident").value = incident;
+  updateCount();
+  submitTriage({ incident: incident.trim(), mode: selectedMode() });
+}
+
 updateCount();
 loadHealth();
+runSampleFromUrl();

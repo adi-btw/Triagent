@@ -1,5 +1,7 @@
 # Triagent
 
+[![CI](https://github.com/adi-btw/triagent/actions/workflows/ci.yml/badge.svg)](https://github.com/adi-btw/triagent/actions/workflows/ci.yml)
+
 **Evidence-grounded incident triage.** Paste an error report or a short log excerpt. Triagent searches a corpus of synthetic runbooks
 and past incident reports, and returns a **structured triage report**: severity (SEV1–4), likely causes,
 and next steps. **Every claim cites a retrieved passage**, and when the corpus doesn't cover the
@@ -13,6 +15,8 @@ It's built in three stages, and each one can be measured against the others:
 | 2. Agentic workflow | The model chooses to *draft*, *rewrite the query and retry once*, or *ask one clarifying question*. The app enforces every limit. Each step shows in the UI | [docs/agent.md](docs/agent.md) |
 | 3. Evaluation | 32 labeled cases; the same model compared with no retrieval, with RAG, and as an agent; LLM-as-judge for claim support; bootstrap CIs | [docs/evaluation.md](docs/evaluation.md), [data/eval/README.md](data/eval/README.md) |
 | 4. QLoRA (optional) | Dataset and hardware requirements for fine-tuning a small severity classifier, written up before any decision to build it | [finetune/README.md](finetune/README.md) |
+
+![Triagent: agent-mode triage of a checkout outage, with severity, cited causes and next steps, the pipeline trace and the evidence](docs/images/triagent-report.png)
 
 **Results** (32 labeled incidents, same model in every mode): exact severity rises from **38%** with no
 retrieval to **79%** with RAG and **93%** with the agent. Correct abstention on incidents the docs don't
@@ -70,7 +74,7 @@ python -m scripts.ingest
 uvicorn app.main:app --reload
 ```
 
-Open http://localhost:8000. Click **Load demo incident**, pick a mode, and submit. Click a citation chip to see the
+Open http://localhost:8000. Click a sample incident, pick a mode, and submit. Click a citation chip to see the
 passage, and read the **Steps** timeline to see what the agent chose. The API docs are at `/docs`.
 
 From the terminal:
@@ -83,6 +87,30 @@ python -m scripts.triage_cli data/demo_incident.txt --mode agent
 docker compose up -d
 STORE_BACKEND=postgres python -m scripts.ingest --backend postgres
 ```
+
+## Deployment
+
+`Dockerfile` builds a single container with the embedding model and index baked in, and
+`render.yaml` deploys it to Render's free tier from this repository. The container runs in **demo
+mode**, which guards a public URL backed by a paid key in three ways:
+- The UI's sample incidents replay pre-computed answers, which are instant and free.
+- Each visitor gets 20 requests an hour.
+- A hard daily cap limits how many calls can reach the model.
+
+`/?sample=checkout&mode=agent` deep-links straight to a finished report. See [docs/deploy.md](docs/deploy.md).
+
+## Continuous integration
+
+Every push runs [CI](.github/workflows/ci.yml):
+
+| Job | What it proves |
+|---|---|
+| Lint and unit tests (Python 3.11, 3.12) | `ruff` plus 330+ hermetic tests with fakes, no network |
+| Retrieval regression gate | Builds the real index and fails if hybrid primary-doc hit, recall or MRR drops below the thresholds in `eval/retrieval_gate.py` |
+| Postgres + pgvector | Runs the store integration tests against a live `pgvector` service, then ingests the corpus into Postgres and runs the same retrieval gate on it |
+| Docker image | Builds the image, starts it with an *invalid* API key, and checks that every sample incident is served from the demo cache in every mode |
+
+No CI job calls an LLM, so CI is free and deterministic. The end-to-end eval is run on demand (below).
 
 ## Tests
 
@@ -180,9 +208,12 @@ app/
   main.py                    FastAPI: POST /triage, GET /health, UI at /
 data/corpus/                 26 synthetic runbooks, incidents and policies
 data/eval/cases.jsonl        32 labeled cases (answerable / insufficient_evidence / ambiguous)
-eval/                        run_eval, retrieval_eval, metrics, judge, report
+data/demo_cache/             pre-computed answers for the UI's sample incidents (demo mode)
+eval/                        run_eval, retrieval_eval, retrieval_gate (CI), metrics, judge, report
 finetune/README.md           stage 4 requirements (not implemented yet)
 docs/                        design notes per subsystem: decisions, trade-offs, FAQ
+Dockerfile  render.yaml      container with baked-in index; Render blueprint (docs/deploy.md)
+.github/workflows/ci.yml     lint, tests, retrieval gate, Postgres, Docker smoke test
 ```
 
 ## Known limitations
@@ -194,4 +225,5 @@ docs/                        design notes per subsystem: decisions, trade-offs, 
   *supports* the claim. That's measured by the LLM judge, which should be spot-checked by a human.
 - The published run uses the same model as generator and judge. A stronger, separate judge model
   (`JUDGE_MODEL=...`) would remove the self-preference bias.
-- The Postgres store has integration tests (`-m postgres`) that haven't yet been run against a live database.
+- On Postgres, keyword ranking uses `ts_rank` instead of BM25. With the same corpus, hybrid MRR is 75% vs 78%
+  for the in-memory store, and primary-doc hit is 100% on both (measured in CI).

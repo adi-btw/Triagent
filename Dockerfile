@@ -16,6 +16,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Hugging Face Spaces runs containers as uid 1000; the app writes new cache entries.
 RUN useradd --create-home --uid 1000 app
 WORKDIR /home/app/triagent
+# WORKDIR creates the folder as root; the app user must own it to write .cache/.
+RUN chown app:app /home/app/triagent
 
 COPY --chown=app pyproject.toml ./
 COPY --chown=app app ./app
