@@ -1,13 +1,11 @@
-# Render Blueprint: New > Blueprint > pick this repo. Builds the Dockerfile; the only
-# value to supply is GEMINI_API_KEY (marked sync: false, so Render prompts for it).
+# Render Blueprint: New > Blueprint > pick this repo. Builds the Dockerfile on the free plan.
+#
+# Deliberately NO API key: without GEMINI_API_KEY the container runs as a key-free demo that
+# only replays the pre-computed sample answers in data/demo_cache, so it can never call a
+# paid model. Don't add a key here unless you accept per-request model costs (docs/deploy.md).
 services:
   - type: web
     name: triagent
     runtime: docker
     plan: free
     healthCheckPath: /health
-    envVars:
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: DEMO_LLM_CALLS_PER_DAY
-        value: "300"

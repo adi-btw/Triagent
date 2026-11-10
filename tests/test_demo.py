@@ -156,3 +156,41 @@ def test_no_limit_outside_demo_mode():
             assert c.post("/triage", json={"incident": INCIDENT, "mode": "rag"}).is_success
     finally:
         main.app.dependency_overrides.clear()
+
+
+def test_key_free_demo_never_needs_a_provider(tmp_path):
+    from app.demo import DemoCacheMiss, OfflineLLM
+    from app.llm.factory import build_llm
+
+    settings = Settings(_env_file=None, llm_provider="gemini", gemini_api_key=None,
+                        demo_mode=True, demo_cache_dir=tmp_path)
+    llm = build_llm(settings)
+    assert isinstance(llm, CachingLLM)
+    with pytest.raises(DemoCacheMiss):
+        llm.generate_json(system="s", user="not cached", schema=Out)
+    # A pre-seeded answer for the same model replays without any provider.
+    seeded = Counting()
+    seeded.model_name = settings.gemini_model
+    CachingLLM(seeded, tmp_path, extra_key=f"gemini_thinking_level={settings.gemini_thinking_level}"
+               ).generate_json(system="s", user="cached", schema=Out)
+    assert llm.generate_json(system="s", user="cached", schema=Out).cached
+    assert OfflineLLM("m").model_name == "m"
+
+
+def test_key_free_demo_api_returns_403_for_custom_incident(tmp_path):
+    from app.llm.factory import build_llm
+
+    settings = Settings(_env_file=None, llm_provider="gemini", gemini_api_key=None,
+                        demo_mode=True, demo_cache_dir=tmp_path)
+    main._limiter = None
+    main.app.dependency_overrides[get_settings] = lambda: settings
+    main.app.dependency_overrides[get_retriever_provider] = lambda: lambda: FakeRetriever()
+    main.app.dependency_overrides[get_llm] = lambda: build_llm(settings)
+    try:
+        c = TestClient(main.app)
+        resp = c.post("/triage", json={"incident": INCIDENT, "mode": "rag"})
+        assert resp.status_code == 403 and "sample" in resp.json()["detail"]
+        assert c.get("/health").json()["demo_samples_only"] is True
+    finally:
+        main.app.dependency_overrides.clear()
+        main._limiter = None

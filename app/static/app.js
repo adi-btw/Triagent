@@ -114,6 +114,7 @@ async function submitTriage(payload) {
     $("empty").hidden = false;
     const titles = {
       422: "The request was rejected",
+      403: "Only the sample incidents work in this demo",
       429: "Demo limit reached",
       501: "This mode is not available on the server",
       502: "The language model provider failed",
@@ -352,17 +353,25 @@ async function loadHealth() {
     const h = await resp.json();
     const problems = [];
     if (!h.index_ok) problems.push("index missing");
-    if (h.llm_provider === "gemini" && !h.llm_key_present) problems.push("no API key");
+    if (h.llm_provider === "gemini" && !h.llm_key_present && !h.demo_samples_only) {
+      problems.push("no API key");
+    }
     pill.dataset.state = problems.length ? "warn" : "ok";
     $("health-text").textContent = problems.length
       ? problems.join(" · ")
-      : `${h.model} · ${h.retrieval_mode}`;
+      : h.demo_samples_only
+        ? `demo · ${h.retrieval_mode} · recorded ${h.model} runs`
+        : `${h.model} · ${h.retrieval_mode}`;
     pill.title = `backend: ${h.backend}, embedder: ${h.embedder}, provider: ${h.llm_provider}` +
       (h.index_error ? `\n${h.index_error}` : "");
     if (h.demo_mode) {
       const note = $("demo-note");
-      note.textContent = "Public demo. The sample incidents are pre-computed and load instantly; " +
-        `custom incidents call the model live, up to ${h.demo_requests_per_hour} per hour per visitor.`;
+      note.textContent = h.demo_samples_only
+        ? "Public demo. Pick a sample incident and any pipeline: the answers are real runs of " +
+          `${h.model}, recorded ahead of time. Custom incidents need the model, so run Triagent ` +
+          "locally for those (see the README)."
+        : "Public demo. The sample incidents are pre-computed and load instantly; custom " +
+          `incidents call the model live, up to ${h.demo_requests_per_hour} per hour per visitor.`;
       note.hidden = false;
     }
   } catch {

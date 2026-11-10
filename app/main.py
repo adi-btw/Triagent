@@ -13,6 +13,7 @@ Status codes:
     502  the LLM provider failed after retries
     503  the retriever or LLM could not be built (no index, no API key)
     429  demo mode only: per-visitor rate limit or daily model budget (``Retry-After``)
+    403  key-free demo only: the incident is not one of the pre-computed samples
 
 Handlers are plain ``def`` (not ``async def``): the LLM SDK call is blocking, and
 FastAPI runs sync handlers in a thread pool so one slow call doesn't block the server.
@@ -27,7 +28,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.demo import RateLimited, SlidingWindowLimiter, client_key
+from app.demo import DemoCacheMiss, RateLimited, SlidingWindowLimiter, client_key
 from app.deps import (
     LLMDep,
     RetrieverProviderDep,
@@ -52,6 +53,11 @@ app = FastAPI(
 @app.exception_handler(ServiceUnavailable)
 def _service_unavailable(_: Request, exc: ServiceUnavailable) -> JSONResponse:
     return JSONResponse(status_code=503, content={"detail": str(exc)})
+
+
+@app.exception_handler(DemoCacheMiss)
+def _demo_cache_miss(_: Request, exc: DemoCacheMiss) -> JSONResponse:
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
 
 
 @app.exception_handler(RateLimited)
@@ -129,6 +135,8 @@ def health(settings: SettingsDep, retriever_provider: RetrieverProviderDep) -> d
         "index_ok": index_ok,
         "index_error": index_error,
         "demo_mode": settings.demo_mode,
+        # Key-free demo: only pre-computed samples are served, nothing can reach a provider.
+        "demo_samples_only": settings.demo_mode and not settings.gemini_api_key,
         "demo_requests_per_hour": settings.demo_requests_per_ip_per_hour
         if settings.demo_mode else None,
     }

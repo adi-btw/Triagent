@@ -37,6 +37,11 @@ def build_llm(settings: Settings) -> LLMClient:
 
         return DemoLLM()
     if settings.llm_provider == "gemini":
+        if not settings.gemini_api_key and settings.demo_mode:
+            # Key-free public demo: serve pre-seeded answers only, never call a provider.
+            from app.demo import OfflineLLM
+
+            return with_cache(OfflineLLM(settings.gemini_model), settings)
         if not settings.gemini_api_key:
             raise LLMConfigError(
                 "LLM_PROVIDER=gemini but GEMINI_API_KEY is not set. "

@@ -1,8 +1,10 @@
 # Deploying the public demo
 
 The repository builds one container (`Dockerfile`) holding the API, the UI, the embedding
-model and a pre-built index. The container starts with `DEMO_MODE=true`. The only secret
-it needs is `GEMINI_API_KEY`.
+model and a pre-built index. The container starts with `DEMO_MODE=true` and **no API key**.
+It serves the UI's sample incidents from pre-computed answers (`data/demo_cache`) and refuses
+anything else with HTTP 403, so the deployment can never call a paid model. The sections below
+on rate limits and budgets only apply if you choose to add a `GEMINI_API_KEY`.
 
 ## What protects the API key
 
@@ -36,7 +38,7 @@ need a real call and fail.
 1. Sign in at render.com with GitHub and grant access to this repository.
 2. **New → Blueprint**, pick the repository. Render reads `render.yaml` (Docker runtime,
    free plan, health check on `/health`).
-3. When prompted, paste `GEMINI_API_KEY`. It's stored as a Render secret, never in git.
+3. No secrets are needed. Don't add `GEMINI_API_KEY` unless you accept model costs.
 4. Deploy. Later pushes to `main` redeploy automatically.
 
 Memory: the app uses about 250 MB resident (measured locally), inside the free plan's 512 MB.
@@ -46,7 +48,7 @@ minute to wake. That's fine for a portfolio link; the paid "starter" plan stays 
 ## Option B: Hugging Face Spaces (Docker)
 
 1. Create a Space with SDK **Docker** (free CPU hardware is plenty).
-2. Settings → **Variables and secrets** → add secret `GEMINI_API_KEY`.
+2. No secrets needed (leave out `GEMINI_API_KEY` to keep it free).
 3. A Space's README must start with front matter, so push a copy whose README begins with:
    ```yaml
    ---

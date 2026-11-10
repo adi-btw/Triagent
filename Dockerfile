@@ -1,11 +1,12 @@
 # Triagent web app as a single container: API + UI + a baked-in retrieval index.
 #
 #   docker build -t triagent .
-#   docker run -p 7860:7860 -e GEMINI_API_KEY=... triagent
+#   docker run -p 7860:7860 triagent
 #
 # The embedding model and the index are built into the image, so a cold start doesn't
-# download 130 MB or re-embed the corpus. DEMO_MODE is on: per-visitor rate limits, a daily
-# model budget, and the UI's sample incidents served from data/demo_cache (see app/demo.py).
+# download 130 MB or re-embed the corpus. DEMO_MODE is on and no API key is baked in or
+# needed: the UI's sample incidents are served from data/demo_cache, and nothing else can
+# reach a model, so the deployment costs nothing to run (see app/demo.py).
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

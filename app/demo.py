@@ -1,7 +1,12 @@
 """Guardrails for running Triagent as a public demo (``DEMO_MODE=true``).
 
-A public URL plus a paid API key is a cost exposure: anyone can script requests. Demo
-mode adds three layers, cheapest first:
+**Key-free (the default deployment).** With no ``GEMINI_API_KEY`` set, the demo cannot
+call a model at all: ``OfflineLLM`` stands in for the provider, so only the pre-seeded
+sample answers are served and any other incident gets HTTP 403 with an explanation.
+Nothing can cost money, however the site is used.
+
+**With a key** (opt-in), a public URL backed by a paid key is a cost exposure, because anyone
+can script requests. Demo mode then relies on three layers, cheapest first:
 
 1. **LLM cache, pre-seeded.** The UI's sample incidents were run once through every
    mode and the answers committed under ``data/demo_cache`` (see
@@ -42,6 +47,29 @@ class RateLimited(RuntimeError):
     def __init__(self, message: str, retry_after_s: int) -> None:
         super().__init__(message)
         self.retry_after_s = retry_after_s
+
+
+class DemoCacheMiss(RuntimeError):
+    """Key-free demo asked for an answer that was not pre-computed. API maps to 403."""
+
+
+class OfflineLLM:
+    """Implements ``LLMClient`` without a provider: every call is a ``DemoCacheMiss``.
+
+    Sits under the cache in a key-free demo. ``model_name`` must equal the model the cache
+    was seeded with, because the model is part of every cache key.
+    """
+
+    def __init__(self, model_name: str) -> None:
+        self.model_name = model_name
+
+    def generate_json(self, *, system: str, user: str, schema: type[BaseModel],
+                      temperature: float = 0.0) -> LLMResult:
+        raise DemoCacheMiss(
+            "This public demo has no model attached, so it only serves the pre-computed "
+            "sample incidents (use the sample buttons). To triage your own incident, run "
+            "Triagent locally: see the README quickstart."
+        )
 
 
 class SlidingWindowLimiter:

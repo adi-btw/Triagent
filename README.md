@@ -92,7 +92,8 @@ STORE_BACKEND=postgres python -m scripts.ingest --backend postgres
 
 `Dockerfile` builds a single container with the embedding model and index baked in, and
 `render.yaml` deploys it to Render's free tier from this repository. The container runs in **demo
-mode**, which guards a public URL backed by a paid key in three ways:
+mode with no API key**, so hosting it costs nothing. It replays recorded sample answers and returns
+403 for anything else. If a key is ever added, demo mode guards it in three ways:
 - The UI's sample incidents replay pre-computed answers, which are instant and free.
 - Each visitor gets 20 requests an hour.
 - A hard daily cap limits how many calls can reach the model.
