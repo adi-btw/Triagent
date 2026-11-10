@@ -32,6 +32,7 @@ from app.llm.prompts import (
     build_rag_user_prompt,
 )
 from app.retrieval.base import Retriever
+from app.retrieval.pinned import pinned_evidence, with_pinned
 from app.schemas import (
     Evidence,
     RetrievedRef,
@@ -57,15 +58,18 @@ def run_rag(
     t_total = time.perf_counter()
 
     t0 = time.perf_counter()
-    evidence = retriever.retrieve(incident, k=settings.top_k, mode=settings.retrieval_mode)
+    retrieved = retriever.retrieve(incident, k=settings.top_k, mode=settings.retrieval_mode)
+    evidence = with_pinned(retrieved, pinned_evidence(settings))
     retrieval_ms = ms_since(t0)
     retrieve_step = TraceStep(
         name="retrieve",
         latency_ms=retrieval_ms,
         detail={
+            "query": incident,
             "k": settings.top_k,
             "mode": settings.retrieval_mode,
-            "results": [{"chunk_id": e.chunk_id, "score": round(e.score, 4)} for e in evidence],
+            "results": [{"chunk_id": e.chunk_id, "score": round(e.score, 4)} for e in retrieved],
+            "pinned": [e.chunk_id for e in evidence if e.method == "pinned"],
         },
     )
 

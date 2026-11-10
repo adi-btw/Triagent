@@ -40,7 +40,8 @@ class Evidence(BaseModel):
     heading: str
     content: str
     score: float
-    method: Literal["vector", "keyword", "hybrid"]
+    # "pinned" = always-included context (app.retrieval.pinned), not a search result.
+    method: Literal["vector", "keyword", "hybrid", "pinned"]
 
 
 # --------------------------------------------------------------------------- report

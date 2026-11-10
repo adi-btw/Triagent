@@ -27,13 +27,14 @@ It's built in three stages, and each one can be measured against the others:
                                                      └───────────────────┬─────────────────────┘
  POST /triage  ──────────────────────────────────────────────────────────┼───────────────────────
   mode=no_retrieval:   incident ─────────────────────────────► LLM ─► validate
-  mode=rag:            incident ─► retrieve top-k ──────────► LLM ─► validate
+  mode=rag:            incident ─► retrieve top-k + pinned ─► LLM ─► validate
   mode=agent:          incident ─► retrieve ─► DECIDE ─┬─ draft ──► LLM ─► validate ─► repair ×1
                                       ▲                ├─ rewrite query (×1) ─► retrieve ─► merge ─┘
                                       └────────────────┴─ ask clarifying question (×1) ─► 200 needs_clarification
 
   validate (deterministic code): schema parse · cited ids ⊆ retrieved ids · every cause/step cited ·
                                  severity/abstention consistency     → 422 with violations if any fail
+  pinned: the severity policy is added to every request's evidence, never left to ranking
   every response carries a trace: steps, retrieved ids + scores, queries, timings, LLM call count
 ```
 

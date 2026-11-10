@@ -233,6 +233,8 @@ def retrieval_recall(results: Sequence[CaseResult]) -> dict | None:
     """Mean per-case recall of expected docs / chunks in ``trace.retrieved``.
 
     Doc recall: |expected_doc_ids ∩ docs of retrieved chunks| / |expected_doc_ids|.
+    Pinned context (``method == "pinned"``) is excluded: it is always present, so counting
+    it would credit the retriever for chunks it never found.
     Chunk recall: same with ``expected_chunk_ids``. Cases with no expected ids (most
     insufficient_evidence cases) are skipped: recall of an empty set is undefined.
     Returns None when no result retrieved anything and none was expected to
@@ -244,7 +246,9 @@ def retrieval_recall(results: Sequence[CaseResult]) -> dict | None:
     for r in results:
         if r.response is None:
             continue
-        retrieved = [ref.chunk_id for ref in r.response.trace.retrieved]
+        retrieved = [
+            ref.chunk_id for ref in r.response.trace.retrieved if ref.method != "pinned"
+        ]
         if r.response.trace.mode != "no_retrieval":
             any_retrieval = True
         docs = {doc_id(c) for c in retrieved}

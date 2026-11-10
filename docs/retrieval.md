@@ -250,3 +250,27 @@ exact strings (`too many clients`, `max_connections`), and RRF fusion gets RB-DB
 `tests/test_retrieval_demo.py` records this as a strict `xfail` for vector mode, so the result
 can't silently change. That's one incident, though. `eval/` measures recall across all
 cases before any default is changed.
+
+## Pinned context: the severity policy is always included
+
+The first live Gemini runs exposed a dependency on ranking. On the demo incident, the
+severity policy (`POL-SEV-001`) was not in the top 5, because a rubric reads nothing like a
+log excerpt. The model then correctly refused to assign a severity, and in RAG mode its
+report was rejected for setting `severity: null` without flagging insufficient evidence.
+The model behaved correctly; the retriever was the bottleneck.
+
+The rubric applies to *every* incident, so it shouldn't compete for a top-k slot.
+`PINNED_DOC_IDS` (default `["POL-SEV-001"]`) lists documents whose sections are added to
+every request's evidence by `app/retrieval/pinned.py`:
+
+- loaded from the corpus files, so it's the same for the memory and Postgres stores;
+- appended **after** the retrieved chunks, so it never displaces a search result (in agent
+  mode the `2 × top_k` merge cap applies to retrieved chunks only);
+- marked `method: "pinned"` with score 0, shown in the UI as "always included";
+- part of the citation allow-list, so `severity_citations` can cite it;
+- **excluded from retrieval recall** in `eval/`, so metrics still measure only what
+  search found. `eval.retrieval_eval` calls the retriever directly and is unaffected.
+
+The trade-off is about 150 extra prompt tokens per request, in exchange for every report
+being able to justify its severity. Pinning suits small documents that apply to every
+request; anything incident-specific stays retrieved.

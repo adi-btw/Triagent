@@ -22,7 +22,10 @@ def test_rag_happy_path(settings):
 
     assert resp.status == "ok"
     assert resp.report is not None and resp.report.severity is not None
-    assert [e.chunk_id for e in resp.evidence] == [e.chunk_id for e in DEMO_EVIDENCE]
+    # Retrieved chunks first, then the pinned severity-policy section search didn't return.
+    demo_ids = [e.chunk_id for e in DEMO_EVIDENCE]
+    assert [e.chunk_id for e in resp.evidence] == [*demo_ids, "POL-SEV-001#s2"]
+    assert resp.evidence[-1].method == "pinned"
     # Retriever was asked with the incident text and the configured k / mode.
     assert retriever.calls[0].query == INCIDENT
     assert (retriever.calls[0].k, retriever.calls[0].mode) == (4, "hybrid")
@@ -38,7 +41,9 @@ def test_rag_trace_fields_are_populated(settings):
     trace = resp.trace
     assert trace.mode == "rag" and trace.model == "scripted" and trace.llm_calls == 1
     assert trace.queries == [INCIDENT] and trace.retrieval_mode == "hybrid"
-    assert [r.chunk_id for r in trace.retrieved] == [e.chunk_id for e in DEMO_EVIDENCE]
+    demo_ids = [e.chunk_id for e in DEMO_EVIDENCE]
+    assert [r.chunk_id for r in trace.retrieved] == [*demo_ids, "POL-SEV-001#s2"]
+    assert trace.steps[0].detail["pinned"] == ["POL-SEV-001#s2"]
     assert [s.name for s in trace.steps] == ["retrieve", "generate", "validate"]
     assert set(trace.timings_ms) == {"retrieval", "generation", "validation", "total"}
     assert trace.timings_ms["total"] >= trace.timings_ms["generation"]

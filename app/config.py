@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     # Retrieval
     top_k: int = 5
     retrieval_mode: RetrievalMode = "vector"
+    # Docs added to every request's evidence regardless of ranking (see app/retrieval/pinned.py).
+    # The severity rubric applies to every incident, so it must not depend on search ranking.
+    pinned_doc_ids: list[str] = ["POL-SEV-001"]
 
     # Agent limits (enforced by code, never by the model)
     agent_max_steps: int = 4

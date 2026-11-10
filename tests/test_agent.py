@@ -100,9 +100,10 @@ def test_rewrite_then_draft_merges_evidence(settings):
     assert [c.query for c in retriever.calls] == [INCIDENT, "hpa scale out connection pool"]
     assert resp.trace.queries == [INCIDENT, "hpa scale out connection pool"]
     ids = [e.chunk_id for e in resp.evidence]
-    # Union of both retrievals, de-duplicated, best score kept, ordered by score.
+    # Union of both retrievals, de-duplicated, best score kept, ordered by score; then the
+    # pinned policy section that neither retrieval returned.
     assert ids == ["RB-DB-001#s1", "RB-K8S-002#s2", "RB-DB-001#s3", "INC-2025-014#s2",
-                   "POL-SEV-001#s1"]
+                   "POL-SEV-001#s1", "POL-SEV-001#s2"]
     assert resp.evidence[0].score == 0.95
     assert [r.chunk_id for r in resp.trace.retrieved] == ids
     # The allow-list given to the validator covers chunks from both queries.

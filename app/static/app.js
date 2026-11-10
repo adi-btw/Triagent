@@ -200,7 +200,7 @@ function renderEvidence(evidence) {
   const items = evidence.map((e) =>
     el("details", { "data-id": e.chunk_id },
       el("summary", {}, el("code", { text: e.chunk_id }), ` ${e.title} / ${e.heading} `,
-        el("span", { class: "score", text: `score ${e.score.toFixed(3)}` })),
+        el("span", { class: "score", text: e.method === "pinned" ? "always included" : `score ${e.score.toFixed(3)}` })),
       el("pre", { text: e.content })));
   $("evidence").replaceChildren(
     ...(items.length ? items : [el("p", { class: "muted", text: "No evidence retrieved." })]));

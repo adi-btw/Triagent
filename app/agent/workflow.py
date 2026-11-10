@@ -43,6 +43,7 @@ from app.config import Settings
 from app.llm.base import LLMClient
 from app.llm.prompts import TRIAGE_SYSTEM, build_rag_user_prompt
 from app.retrieval.base import Retriever
+from app.retrieval.pinned import pinned_evidence, with_pinned
 from app.schemas import (
     Evidence,
     RetrievedRef,
@@ -169,7 +170,9 @@ def _retrieve(run: _Run, retriever: Retriever, query: str) -> None:
     latency = ms_since(t0)
     known = {e.chunk_id for e in run.evidence}
     run.queries.append(query)
-    run.evidence = merge_evidence(run.evidence, found, cap=2 * s.top_k)
+    # The cap applies to retrieved chunks only; pinned context is re-appended after it.
+    searched = [e for e in run.evidence if e.method != "pinned"]
+    run.evidence = with_pinned(merge_evidence(searched, found, cap=2 * s.top_k), pinned_evidence(s))
     detail = {
         "query": query,
         "k": s.top_k,
@@ -177,6 +180,7 @@ def _retrieve(run: _Run, retriever: Retriever, query: str) -> None:
         "results": [{"chunk_id": e.chunk_id, "score": round(e.score, 4)} for e in found],
         "new_chunk_ids": [e.chunk_id for e in found if e.chunk_id not in known],
         "merged_count": len(run.evidence),
+        "pinned": [e.chunk_id for e in run.evidence if e.method == "pinned"],
     }
     run.add(TraceStep(name="retrieve", latency_ms=latency, detail=detail), "retrieval")
 
