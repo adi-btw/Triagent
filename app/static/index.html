@@ -5,89 +5,210 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Triagent · Incident triage</title>
   <meta name="description" content="Paste an incident; get a cited triage report and see every step the agent took.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236d5efc'/%3E%3Cpath d='M5 17h6l3-7 4 13 3-6h6' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="app.css">
+  <script>
+    // Apply a saved theme before first paint so the page doesn't flash.
+    try { const t = localStorage.getItem("triagent-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+  </script>
 </head>
 <body>
-  <header class="site-header">
-    <h1>Triagent</h1>
-    <p class="muted">Paste an error report or log excerpt. The report cites retrieved runbooks and past
-      incidents; code checks every citation. In agent mode you can see each step the model chose.</p>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/" aria-label="Triagent home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <defs>
+            <linearGradient id="bm" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#8b7dff"/><stop offset="1" stop-color="#4f46e5"/>
+            </linearGradient>
+          </defs>
+          <rect width="32" height="32" rx="8" fill="url(#bm)"/>
+          <path d="M5 17h6l3-7 4 13 3-6h6" fill="none" stroke="#fff" stroke-width="2.6"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="brand-text">
+          <span class="brand-name">Triagent</span>
+          <span class="brand-tag">Evidence-grounded incident triage</span>
+        </span>
+      </a>
+      <div class="topbar-right">
+        <span id="health" class="health" data-state="pending" title="Server status">
+          <span class="health-dot" aria-hidden="true"></span>
+          <span id="health-text">Connecting…</span>
+        </span>
+        <a class="toplink" href="/docs">API</a>
+        <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle light or dark theme">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
   </header>
 
-  <main>
-    <form id="triage-form" class="card" novalidate>
-      <label for="incident" class="label">Incident report</label>
-      <textarea id="incident" name="incident" rows="10" minlength="10" maxlength="8000" required
-                aria-describedby="incident-help"
-                placeholder="checkout-api returning 500s since 14:05 UTC..."></textarea>
-      <p id="incident-help" class="muted small">10 to 8000 characters. Log lines help.</p>
-
-      <div class="row">
-        <button type="button" id="load-demo" class="secondary">Load demo incident</button>
-        <button type="button" id="load-vague" class="secondary">Load vague incident</button>
+  <main class="layout">
+    <!-- ============================================================ composer -->
+    <section class="composer card" aria-labelledby="composer-title">
+      <div class="card-head">
+        <h1 id="composer-title">New triage</h1>
+        <p class="muted">Paste an error report or log excerpt. Every claim in the report cites a
+          runbook or past incident, and code checks every citation.</p>
       </div>
 
-      <fieldset class="modes">
-        <legend class="label">Mode</legend>
-        <label><input type="radio" name="mode" value="no_retrieval"> No retrieval <span class="muted small">(baseline)</span></label>
-        <label><input type="radio" name="mode" value="rag"> RAG <span class="muted small">(fixed steps)</span></label>
-        <label><input type="radio" name="mode" value="agent" checked> Agent <span class="muted small">(model picks steps)</span></label>
-      </fieldset>
+      <form id="triage-form" novalidate>
+        <div class="field">
+          <div class="field-head">
+            <label for="incident">Incident report</label>
+            <span id="char-count" class="muted small" aria-live="off">0 / 8000</span>
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar" aria-hidden="true">
+              <span></span><span></span><span></span><em>incident.log</em>
+            </div>
+            <textarea id="incident" name="incident" rows="11" minlength="10" maxlength="8000" required
+                      spellcheck="false" aria-describedby="incident-help"
+                      placeholder="checkout-api returning 500s since 14:05 UTC…&#10;&#10;2026-11-09T14:06:12Z ERROR checkout-api pool.acquire timed out"></textarea>
+          </div>
+          <div class="samples">
+            <span id="incident-help" class="muted small">Try a sample:</span>
+            <button type="button" id="load-demo" class="pill-btn">Checkout outage</button>
+            <button type="button" id="load-vague" class="pill-btn">Vague report</button>
+          </div>
+        </div>
 
-      <button type="submit" id="submit" class="primary">Triage</button>
-    </form>
+        <fieldset class="segmented">
+          <legend>Pipeline</legend>
+          <div class="seg-group">
+            <label class="seg">
+              <input type="radio" name="mode" value="no_retrieval">
+              <span class="seg-body"><span class="seg-title">Baseline</span><span class="seg-desc">No retrieval</span></span>
+            </label>
+            <label class="seg">
+              <input type="radio" name="mode" value="rag">
+              <span class="seg-body"><span class="seg-title">RAG</span><span class="seg-desc">Retrieve, then draft</span></span>
+            </label>
+            <label class="seg">
+              <input type="radio" name="mode" value="agent" checked>
+              <span class="seg-body"><span class="seg-title">Agent</span><span class="seg-desc">Model picks steps</span></span>
+            </label>
+          </div>
+        </fieldset>
 
-    <div id="error" class="card error" role="alert" hidden></div>
-
-    <section id="clarify" class="card clarify" hidden aria-labelledby="clarify-title">
-      <h2 id="clarify-title">The assistant needs more information</h2>
-      <p id="clarify-question" class="question"></p>
-      <form id="clarify-form" novalidate>
-        <label for="clarification" class="label">Your answer</label>
-        <textarea id="clarification" rows="3" maxlength="2000" required></textarea>
-        <button type="submit" class="primary">Send answer and triage</button>
+        <button type="submit" id="submit" class="btn-primary">
+          <span id="submit-label">Run triage</span>
+          <kbd aria-hidden="true">Ctrl ↵</kbd>
+        </button>
       </form>
     </section>
 
-    <section id="result" class="card" hidden aria-live="polite" aria-labelledby="result-title">
-      <div class="result-head">
-        <h2 id="result-title">Result</h2>
-        <span id="status-badge" class="badge"></span>
-        <span id="severity" class="badge severity"></span>
+    <!-- ============================================================ results -->
+    <section class="results" aria-live="polite">
+      <div id="empty" class="card empty">
+        <div class="empty-art" aria-hidden="true">
+          <svg viewBox="0 0 120 64"><path d="M4 36h22l8-20 14 40 10-26 8 12h50" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2>Ready when the pager is</h2>
+        <p class="muted">Run a triage to see the report, the evidence behind it, and every step the pipeline took.</p>
+        <ol class="how">
+          <li><strong>Retrieve.</strong> Search 26 runbooks and past incidents for the closest matches.</li>
+          <li><strong>Draft.</strong> The model writes a structured report and cites a passage for every claim.</li>
+          <li><strong>Validate.</strong> Code rejects any citation the model wasn't shown.</li>
+        </ol>
       </div>
 
-      <div id="report-body">
-        <p id="summary" class="summary"></p>
-        <p id="abstain" class="note" hidden>The assistant reports <strong>insufficient evidence</strong> for a grounded diagnosis.</p>
+      <div id="loading" class="card loading" hidden>
+        <div class="loading-head">
+          <span class="spinner" aria-hidden="true"></span>
+          <span id="loading-text">Triaging…</span>
+          <span id="loading-timer" class="muted small mono">0.0s</span>
+        </div>
+        <div class="skeleton w-60"></div>
+        <div class="skeleton w-90"></div>
+        <div class="skeleton w-75"></div>
+        <div class="skeleton-row"><div class="skeleton block"></div><div class="skeleton block"></div></div>
+      </div>
 
-        <h3>Likely causes</h3>
-        <ul id="causes" class="items"></ul>
+      <div id="error" class="callout callout-bad" role="alert" hidden></div>
 
-        <h3>Next steps</h3>
-        <ol id="steps" class="items"></ol>
+      <section id="clarify" class="card clarify" hidden aria-labelledby="clarify-title">
+        <div class="clarify-head">
+          <span class="clarify-icon" aria-hidden="true">?</span>
+          <h2 id="clarify-title">Triagent needs one more detail</h2>
+        </div>
+        <p id="clarify-question" class="question"></p>
+        <form id="clarify-form" novalidate>
+          <label for="clarification" class="visually-hidden">Your answer</label>
+          <textarea id="clarification" rows="3" maxlength="2000" required
+                    placeholder="e.g. payments-api, about 7% of card payments failing since 20:10"></textarea>
+          <button type="submit" class="btn-primary">Send answer and triage</button>
+        </form>
+      </section>
 
-        <div id="missing-wrap" hidden>
-          <h3>Missing information</h3>
+      <section id="result" hidden aria-labelledby="result-title">
+        <h2 id="result-title" class="visually-hidden">Triage report</h2>
+
+        <article id="report-head" class="card report-head">
+          <div id="sev-tile" class="sev-tile">
+            <span class="sev-label">Severity</span>
+            <span id="severity" class="sev-value">—</span>
+            <span id="severity-cites" class="sev-cites"></span>
+          </div>
+          <div class="report-main">
+            <div class="report-meta">
+              <span id="status-badge" class="badge"></span>
+              <span id="mode-badge" class="badge neutral"></span>
+            </div>
+            <p id="summary" class="summary"></p>
+            <p id="abstain" class="callout callout-warn compact" hidden>
+              <strong>Insufficient evidence.</strong> The corpus doesn't fully explain this incident, so the report says so instead of guessing.
+            </p>
+          </div>
+        </article>
+
+        <dl id="stats" class="stats"></dl>
+
+        <div id="violations-wrap" class="callout callout-bad" hidden>
+          <strong>Validation failed.</strong>
+          <span class="muted small">The validator rejected this report. It's shown only for inspection.</span>
+          <ul id="violations"></ul>
+        </div>
+
+        <div id="report-body" class="grid-2">
+          <article class="card">
+            <h3 class="card-title">Likely causes</h3>
+            <ul id="causes" class="cause-list"></ul>
+          </article>
+          <article class="card">
+            <h3 class="card-title">Next steps</h3>
+            <ol id="steps" class="step-list"></ol>
+          </article>
+        </div>
+
+        <div id="missing-wrap" class="callout callout-info" hidden>
+          <strong>Missing information</strong>
           <ul id="missing"></ul>
         </div>
-      </div>
 
-      <div id="violations-wrap" class="violations" hidden>
-        <h3>Validation failed</h3>
-        <p class="muted small">The report below was rejected by the validator and is shown only for inspection.</p>
-        <ul id="violations"></ul>
-      </div>
+        <article class="card">
+          <div class="card-title-row">
+            <h3 class="card-title">Pipeline trace</h3>
+            <span id="trace-summary" class="muted small"></span>
+          </div>
+          <ol id="timeline" class="timeline"></ol>
+        </article>
 
-      <h3>Steps</h3>
-      <ol id="timeline" class="timeline"></ol>
-
-      <h3>Evidence</h3>
-      <p class="muted small">Click a citation chip to open its passage. Red chips cite ids that were not retrieved.</p>
-      <div id="evidence"></div>
-
-      <p id="footer" class="footer muted small"></p>
+        <article class="card">
+          <div class="card-title-row">
+            <h3 class="card-title">Evidence</h3>
+            <span class="muted small">Click a citation to jump to its passage</span>
+          </div>
+          <div id="evidence" class="evidence-list"></div>
+        </article>
+      </section>
     </section>
   </main>
+
+  <footer class="sitefoot muted small">
+    Triagent · RAG and agentic triage over runbooks and past incidents
+  </footer>
 
   <script src="app.js"></script>
 </body>

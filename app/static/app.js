@@ -1,4 +1,4 @@
-// Demo UI for POST /triage. Vanilla JS, no build step, no external dependencies.
+// Triagent UI for POST /triage. Vanilla JS, no build step, no external dependencies.
 //
 // Safety note: everything shown comes from the model or the corpus, so it is written with
 // textContent / createElement, never innerHTML. A report that contains "<script>" is
@@ -15,10 +15,13 @@ We deployed v2.31.0 at 13:58 and the HPA scaled checkout-api from 6 to 14 pods.
 
 const VAGUE_INCIDENT = "Payments seem flaky? Customers are complaining.";
 
+const MODE_LABELS = { no_retrieval: "Baseline", rag: "RAG", agent: "Agent" };
+
 const $ = (id) => document.getElementById(id);
 
 // The last request sent, so a clarification can resubmit the same incident and mode.
 let lastRequest = null;
+let loadingTimer = null;
 
 function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
@@ -28,7 +31,7 @@ function el(tag, attrs = {}, ...children) {
     else node.setAttribute(key, value);
   }
   for (const child of children) {
-    if (child !== null && child !== undefined) {
+    if (child !== null && child !== undefined && child !== false) {
       node.append(child instanceof Node ? child : String(child));
     }
   }
@@ -39,15 +42,40 @@ function selectedMode() {
   return document.querySelector('input[name="mode"]:checked').value;
 }
 
+function formatMs(ms) {
+  if (ms == null) return "—";
+  return ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${Math.round(ms)} ms`;
+}
+
+// ------------------------------------------------------------------ busy / loading state
+
 function setBusy(busy) {
-  for (const button of document.querySelectorAll("button")) button.disabled = busy;
-  $("submit").textContent = busy ? "Triaging..." : "Triage";
+  for (const button of document.querySelectorAll("button:not(#theme-toggle)")) button.disabled = busy;
+  $("submit-label").textContent = busy ? "Triaging…" : "Run triage";
+
+  clearInterval(loadingTimer);
+  $("loading").hidden = !busy;
+  if (busy) {
+    $("empty").hidden = true;
+    $("result").hidden = true;
+    const mode = lastRequest ? lastRequest.mode : selectedMode();
+    $("loading-text").textContent = {
+      no_retrieval: "Drafting a report without retrieval…",
+      rag: "Retrieving evidence and drafting the report…",
+      agent: "Agent is searching, deciding and drafting…",
+    }[mode];
+    const started = performance.now();
+    $("loading-timer").textContent = "0.0s";
+    loadingTimer = setInterval(() => {
+      $("loading-timer").textContent = `${((performance.now() - started) / 1000).toFixed(1)}s`;
+    }, 100);
+  }
 }
 
 function showError(title, detail) {
   const box = $("error");
   box.replaceChildren(el("strong", { text: title }));
-  if (detail) box.append(el("div", { text: detail }));
+  if (detail) box.append(el("span", { text: detail }));
   box.hidden = false;
 }
 
@@ -78,10 +106,12 @@ async function submitTriage(payload) {
     // 200 ok / needs_clarification, and 422 *with* "status" (report failed validation),
     // are both full TriageResponse bodies. A 422 without "status" is a bad request.
     if (body && typeof body.status === "string" && (resp.ok || resp.status === 422)) {
+      setBusy(false);
       renderResponse(body);
       return;
     }
-    $("result").hidden = true;
+    setBusy(false);
+    $("empty").hidden = false;
     const titles = {
       422: "The request was rejected",
       501: "This mode is not available on the server",
@@ -90,10 +120,9 @@ async function submitTriage(payload) {
     };
     showError(titles[resp.status] || `Request failed (HTTP ${resp.status})`, errorDetail(body));
   } catch (err) {
-    $("result").hidden = true;
-    showError("Could not reach the server", String(err));
-  } finally {
     setBusy(false);
+    $("empty").hidden = false;
+    showError("Could not reach the server", String(err));
   }
 }
 
@@ -103,23 +132,50 @@ function renderResponse(body) {
   const evidenceIds = new Set((body.evidence || []).map((e) => e.chunk_id));
   const report = body.report;
 
-  const badge = $("status-badge");
-  badge.className = `badge ${body.status}`;
-  badge.textContent = body.status.replaceAll("_", " ");
-
-  $("severity").textContent = report ? `Severity: ${report.severity || "unknown"}` : "";
-  if (report && report.severity_citations.length) {
-    $("severity").append(" ", chips(report.severity_citations, evidenceIds));
-  }
-
+  $("empty").hidden = true;
   renderClarification(body);
+  renderHead(body, report, evidenceIds);
+  renderStats(body);
   renderReport(report, evidenceIds);
   renderViolations(body.trace.violations);
   renderTimeline(body.trace.steps);
   renderEvidence(body.evidence || []);
-  renderFooter(body.trace);
 
   $("result").hidden = false;
+  if (body.status !== "needs_clarification") {
+    $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function renderHead(body, report, evidenceIds) {
+  $("report-head").hidden = !report;
+  const badge = $("status-badge");
+  badge.className = `badge ${body.status}`;
+  badge.textContent = body.status.replaceAll("_", " ");
+  $("mode-badge").textContent = `${MODE_LABELS[body.trace.mode] || body.trace.mode} · ${body.trace.model}`;
+  if (!report) return;
+
+  const sev = report.severity;
+  $("sev-tile").className = `sev-tile ${sev ? `sev-${sev}` : "sev-unknown"}`;
+  $("severity").textContent = sev || "Unknown";
+  $("severity-cites").replaceChildren(
+    report.severity_citations.length ? chips(report.severity_citations, evidenceIds) : "");
+  $("summary").textContent = report.summary;
+  $("abstain").hidden = !report.insufficient_evidence;
+}
+
+function renderStats(body) {
+  const t = body.trace.timings_ms || {};
+  const pinned = (body.evidence || []).filter((e) => e.method === "pinned").length;
+  const searched = (body.evidence || []).length - pinned;
+  const items = [
+    ["Total time", formatMs(t.total)],
+    ["LLM calls", String(body.trace.llm_calls)],
+    ["Evidence", pinned ? `${searched} + ${pinned} pinned` : String(searched)],
+    ["Retrieval", body.trace.retrieval_mode || "none", true],
+  ];
+  $("stats").replaceChildren(...items.map(([label, value, small]) =>
+    el("div", {}, el("dt", { text: label }), el("dd", { class: small ? "small-val" : "", text: value }))));
 }
 
 function renderClarification(body) {
@@ -128,31 +184,33 @@ function renderClarification(body) {
   if (needed) {
     $("clarify-question").textContent = body.clarifying_question;
     $("clarification").value = "";
-    $("clarification").focus();
+    $("clarify").scrollIntoView({ behavior: "smooth", block: "center" });
+    $("clarification").focus({ preventScroll: true });
   }
 }
 
 function renderReport(report, evidenceIds) {
   $("report-body").hidden = !report;
+  $("missing-wrap").hidden = !report || !report.missing_information.length;
   if (!report) return;
-  $("summary").textContent = report.summary;
-  $("abstain").hidden = !report.insufficient_evidence;
 
   const causes = report.likely_causes.map((c) =>
-    el("li", {}, el("span", { class: "confidence", text: c.confidence }), c.description,
+    el("li", {},
+      el("div", { class: "cause-top" },
+        el("span", { class: `conf conf-${c.confidence}`, text: c.confidence }),
+        el("span", { text: c.description })),
       chips(c.citations, evidenceIds)));
-  $("causes").replaceChildren(...(causes.length ? causes : [emptyItem("None stated.")]));
+  $("causes").replaceChildren(...(causes.length ? causes : [emptyItem("No causes stated.")]));
 
   const steps = report.next_steps.map((s) =>
-    el("li", {}, s.action, chips(s.citations, evidenceIds)));
-  $("steps").replaceChildren(...(steps.length ? steps : [emptyItem("None stated.")]));
+    el("li", {}, el("span", { text: s.action }), chips(s.citations, evidenceIds)));
+  $("steps").replaceChildren(...(steps.length ? steps : [emptyItem("No next steps stated.")]));
 
-  $("missing-wrap").hidden = !report.missing_information.length;
   $("missing").replaceChildren(...report.missing_information.map((m) => el("li", { text: m })));
 }
 
 function emptyItem(text) {
-  return el("li", { class: "empty muted", text });
+  return el("li", { class: "empty", text });
 }
 
 function chips(ids, evidenceIds) {
@@ -185,7 +243,7 @@ function openEvidence(id, known) {
   if (!details) return;
   details.open = true;
   details.classList.add("flash");
-  setTimeout(() => details.classList.remove("flash"), 1200);
+  setTimeout(() => details.classList.remove("flash"), 1400);
   details.scrollIntoView({ behavior: "smooth", block: "center" });
   details.querySelector("summary").focus({ preventScroll: true });
 }
@@ -197,21 +255,29 @@ function renderViolations(violations) {
 }
 
 function renderEvidence(evidence) {
-  const items = evidence.map((e) =>
-    el("details", { "data-id": e.chunk_id },
-      el("summary", {}, el("code", { text: e.chunk_id }), ` ${e.title} / ${e.heading} `,
-        el("span", { class: "score", text: e.method === "pinned" ? "always included" : `score ${e.score.toFixed(3)}` })),
-      el("pre", { text: e.content })));
-  $("evidence").replaceChildren(
-    ...(items.length ? items : [el("p", { class: "muted", text: "No evidence retrieved." })]));
-}
+  // Bars are relative to the best search score in this response (scores differ by mode:
+  // cosine for vector, BM25 for keyword, RRF for hybrid), so only the ranking is shown.
+  const searchScores = evidence.filter((e) => e.method !== "pinned").map((e) => e.score);
+  const maxScore = Math.max(...searchScores, 0) || 1;
 
-function renderFooter(trace) {
-  const t = trace.timings_ms || {};
-  const fmt = (k) => (k in t ? `${k} ${Math.round(t[k])} ms` : null);
-  const parts = ["retrieval", "generation", "validation", "total"].map(fmt).filter(Boolean);
-  $("footer").textContent =
-    `${parts.join(" · ")} · LLM calls: ${trace.llm_calls} · model: ${trace.model} · mode: ${trace.mode}`;
+  const items = evidence.map((e) => {
+    const pinned = e.method === "pinned";
+    const right = pinned
+      ? el("span", { class: "tag", text: "Pinned", title: "Always included, not a search result" })
+      : el("span", { class: "ev-score" },
+          el("span", { class: "ev-score-text", text: `${e.method} ${e.score.toFixed(3)}` }),
+          el("span", { class: "bar", "aria-hidden": "true" },
+            el("span", { style: `width:${Math.max(4, (e.score / maxScore) * 100).toFixed(0)}%` })));
+    return el("details", { "data-id": e.chunk_id },
+      el("summary", {},
+        el("span", { class: "ev-left" },
+          el("span", { class: "ev-id", text: e.chunk_id }),
+          el("span", { class: "ev-title", text: `${e.title} · ${e.heading}` })),
+        right),
+      el("pre", { text: e.content }));
+  });
+  $("evidence").replaceChildren(
+    ...(items.length ? items : [el("p", { class: "muted small", text: "No evidence for this request." })]));
 }
 
 // ------------------------------------------------------------------ steps timeline
@@ -227,10 +293,11 @@ function describeStep(step) {
   switch (step.name) {
     case "retrieve": {
       const added = d.new_chunk_ids ? `, ${d.new_chunk_ids.length} new` : "";
-      return `“${truncate(d.query, 80)}” → ${(d.results || []).length} chunks${added}`;
+      const pinned = d.pinned && d.pinned.length ? ` + ${d.pinned.length} pinned` : "";
+      return `“${truncate(d.query, 70)}” → ${(d.results || []).length} chunks${added}${pinned}`;
     }
     case "decide":
-      return d.decision ? `${d.decision}: ${d.rationale}` : `malformed output (${truncate(d.error)})`;
+      return d.decision ? `${d.decision.replaceAll("_", " ")}: ${d.rationale}` : `malformed output (${truncate(d.error)})`;
     case "override":
       return `${d.requested_action || "no decision"} → ${d.action}: ${d.reason}`;
     case "rewrite_query":
@@ -241,37 +308,91 @@ function describeStep(step) {
     case "draft":
     case "repair": {
       const fed = d.violations_fed_back ? `${d.violations_fed_back.length} violation(s) fed back; ` : "";
-      return `${fed}${d.parsed_json === false ? "output was not JSON" : "JSON report"}` +
-        (d.output_tokens != null ? `, ~${d.output_tokens} output tokens` : "");
+      return `${fed}${d.parsed_json === false ? "output was not JSON" : "structured JSON report"}` +
+        (d.output_tokens != null ? ` · ~${d.output_tokens} output tokens` : "");
     }
     case "validate": {
       const n = (d.violations || []).length;
-      const verdict = n ? `${n} violation(s)` : "passed";
+      const verdict = n ? `${n} violation(s)` : "all citations valid";
       const repair = d.repair ? `; repair ${d.repair}` : "";
-      return `${verdict} against ${(d.allowed_ids || []).length} allowed ids${repair}`;
+      return `${verdict} · ${(d.allowed_ids || []).length} allowed ids${repair}`;
     }
     default:
       return truncate(JSON.stringify(d));
   }
 }
 
+const STEP_GLYPH = {
+  retrieve: "R", decide: "D", rewrite_query: "Q", ask_clarifying_question: "?",
+  generate: "G", draft: "G", repair: "F", validate: "✓", override: "!",
+};
+
 function renderTimeline(steps) {
+  const total = steps.reduce((sum, s) => sum + s.latency_ms, 0);
+  $("trace-summary").textContent = `${steps.length} steps · ${formatMs(total)}`;
   $("timeline").replaceChildren(...steps.map((step) => {
     const failed = step.name === "validate" && (step.detail.violations || []).length;
-    const cls = step.name === "override" ? "override" : failed ? "fail" : "";
-    return el("li", { class: cls },
-      el("span", { class: "step-name", text: step.name }),
-      el("span", { class: "step-latency", text: `${step.latency_ms.toFixed(1)} ms` }),
-      el("span", { class: "step-detail", text: describeStep(step) }));
+    const kind = failed ? "fail" : step.name;
+    return el("li", {},
+      el("span", { class: `step-dot kind-${kind}`, "aria-hidden": "true", text: failed ? "✕" : STEP_GLYPH[step.name] || "·" }),
+      el("span", { class: "step-body" },
+        el("span", { class: "step-name", text: step.name.replaceAll("_", " ") }),
+        el("span", { class: "step-detail", text: describeStep(step) })),
+      el("span", { class: "step-latency", text: formatMs(step.latency_ms) }));
   }));
 }
 
+// ------------------------------------------------------------------ header: health + theme
+
+async function loadHealth() {
+  const pill = $("health");
+  try {
+    const resp = await fetch("/health");
+    const h = await resp.json();
+    const problems = [];
+    if (!h.index_ok) problems.push("index missing");
+    if (h.llm_provider === "gemini" && !h.llm_key_present) problems.push("no API key");
+    pill.dataset.state = problems.length ? "warn" : "ok";
+    $("health-text").textContent = problems.length
+      ? problems.join(" · ")
+      : `${h.model} · ${h.retrieval_mode}`;
+    pill.title = `backend: ${h.backend}, embedder: ${h.embedder}, provider: ${h.llm_provider}` +
+      (h.index_error ? `\n${h.index_error}` : "");
+  } catch {
+    pill.dataset.state = "bad";
+    $("health-text").textContent = "Server unreachable";
+  }
+}
+
+function currentTheme() {
+  const explicit = document.documentElement.dataset.theme;
+  if (explicit) return explicit;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+$("theme-toggle").addEventListener("click", () => {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem("triagent-theme", next); } catch { /* storage unavailable */ }
+});
+
 // ------------------------------------------------------------------ wiring
 
-$("load-demo").addEventListener("click", () => { $("incident").value = DEMO_INCIDENT; });
+function updateCount() {
+  $("char-count").textContent = `${$("incident").value.length} / 8000`;
+}
+
+$("incident").addEventListener("input", updateCount);
+$("load-demo").addEventListener("click", () => {
+  $("incident").value = DEMO_INCIDENT;
+  updateCount();
+  $("incident").focus();
+});
 $("load-vague").addEventListener("click", () => {
   $("incident").value = VAGUE_INCIDENT;
   document.querySelector('input[name="mode"][value="agent"]').checked = true;
+  updateCount();
+  $("incident").focus();
 });
 
 $("triage-form").addEventListener("submit", (event) => {
@@ -285,6 +406,13 @@ $("triage-form").addEventListener("submit", (event) => {
   submitTriage({ incident, mode: selectedMode() });
 });
 
+$("incident").addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+    event.preventDefault();
+    $("triage-form").requestSubmit();
+  }
+});
+
 $("clarify-form").addEventListener("submit", (event) => {
   event.preventDefault();
   const clarification = $("clarification").value.trim();
@@ -294,3 +422,6 @@ $("clarify-form").addEventListener("submit", (event) => {
   }
   submitTriage({ ...lastRequest, clarification });
 });
+
+updateCount();
+loadHealth();
