@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # Retrieval
     top_k: int = 5
-    retrieval_mode: RetrievalMode = "vector"
+    retrieval_mode: RetrievalMode = "hybrid"  # see eval/results/retrieval-latest.md
     # Docs added to every request's evidence regardless of ranking (see app/retrieval/pinned.py).
     # The severity rubric applies to every incident, so it must not depend on search ranking.
     pinned_doc_ids: list[str] = ["POL-SEV-001"]

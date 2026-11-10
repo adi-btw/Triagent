@@ -3,6 +3,10 @@
     python -m scripts.ingest                       # build the index first
     python -m eval.retrieval_eval                  # vector, keyword, hybrid at k=5
     python -m eval.retrieval_eval --modes vector hybrid --k 8
+    python -m eval.retrieval_eval --modes hybrid hybrid+rerank
+
+Every first-stage mode also has a ``<mode>+rerank`` variant: the same search widened to
+``rerank_candidates`` chunks, then reordered by the cross-encoder (app.retrieval.rerank).
 
 Why separate from ``run_eval``: when the end-to-end score is bad you need to know
 whether the right passage was never retrieved (a retrieval problem) or was retrieved
@@ -45,13 +49,16 @@ from typing import Any
 from app.config import RetrievalMode, Settings, get_settings
 from app.retrieval.base import Retriever
 from app.retrieval.factory import build_retriever
+from app.retrieval.rerank import FastEmbedReranker, Reranker, RerankingRetriever
 from app.schemas import TriageRequest
 from app.triage.service import incident_text
 from eval.cases import DEFAULT_CASES_PATH, EvalCase, load_cases, sha256_dir, sha256_file
 from eval.metrics import BOOTSTRAP_SEED, bootstrap_ci, doc_id
 from eval.run_eval import git_info, make_run_id
 
-ALL_RETRIEVAL_MODES: tuple[RetrievalMode, ...] = ("vector", "keyword", "hybrid")
+BASE_MODES: tuple[RetrievalMode, ...] = ("vector", "keyword", "hybrid")
+RERANK_SUFFIX = "+rerank"
+ALL_RETRIEVAL_MODES: tuple[str, ...] = BASE_MODES + tuple(m + RERANK_SUFFIX for m in BASE_MODES)
 METRICS = ("doc_recall", "chunk_recall", "primary_hit", "mrr")
 METRIC_LABELS = {
     "doc_recall": "Doc recall@k",
@@ -63,6 +70,24 @@ SLICES = ("answerable", "insufficient_evidence", "ambiguous (vague)", "ambiguous
 
 
 # --------------------------------------------------------------------------- pure parts
+
+
+class VariantRetriever:
+    """Routes ``mode="hybrid+rerank"`` to the reranking retriever with ``mode="hybrid"``,
+    and plain modes to the first-stage retriever, so ``evaluate`` treats every variant as
+    just another mode name."""
+
+    def __init__(self, base: Retriever, reranking: Retriever | None) -> None:
+        self.base = base
+        self.reranking = reranking
+        self.label = getattr(reranking or base, "label", type(base).__name__)
+
+    def retrieve(self, query: str, k: int | None = None, mode: str | None = None):
+        if mode and mode.endswith(RERANK_SUFFIX):
+            if self.reranking is None:
+                raise ValueError(f"{mode!r} requested but no reranker was built")
+            return self.reranking.retrieve(query, k=k, mode=mode.removesuffix(RERANK_SUFFIX))
+        return self.base.retrieve(query, k=k, mode=mode)
 
 
 def primary_doc(case: EvalCase) -> str | None:
@@ -118,7 +143,7 @@ def aggregate(rows: list[dict], *, seed: int = BOOTSTRAP_SEED) -> dict[str, Any]
 
 
 def evaluate(
-    cases: Sequence[EvalCase], retriever: Retriever, modes: Sequence[RetrievalMode], k: int
+    cases: Sequence[EvalCase], retriever: Retriever, modes: Sequence[str], k: int
 ) -> dict[str, Any]:
     """Run every (case query, mode) and return per-row results plus aggregates."""
     rows: list[dict] = []
@@ -251,6 +276,7 @@ def main(
     *,
     settings: Settings | None = None,
     retriever: Retriever | None = None,
+    reranker: Reranker | None = None,
     now: datetime | None = None,
 ) -> int:
     p = argparse.ArgumentParser(prog="python -m eval.retrieval_eval",
@@ -258,16 +284,27 @@ def main(
     p.add_argument("--modes", nargs="+", choices=ALL_RETRIEVAL_MODES,
                    default=list(ALL_RETRIEVAL_MODES))
     p.add_argument("--k", type=int, default=5)
+    p.add_argument("--rerank-model", default=None,
+                   help="cross-encoder for +rerank modes (default: settings.rerank_model)")
     p.add_argument("--out", type=Path, default=Path("eval/results"))
     p.add_argument("--cases-file", type=Path, default=DEFAULT_CASES_PATH)
     args = p.parse_args(argv)
     settings = settings or get_settings()
-    modes: list[RetrievalMode] = list(dict.fromkeys(args.modes))
+    if args.rerank_model:
+        settings = settings.model_copy(update={"rerank_model": args.rerank_model})
+    modes: list[str] = list(dict.fromkeys(args.modes))
 
     injected = retriever is not None
     try:
         cases = load_cases(args.cases_file)
-        retriever = retriever or build_retriever(settings)
+        # First stage without reranking: the +rerank variants add it explicitly.
+        retriever = retriever or build_retriever(settings.model_copy(update={"rerank": False}))
+        if any(m.endswith(RERANK_SUFFIX) for m in modes):
+            retriever = VariantRetriever(
+                retriever,
+                RerankingRetriever(retriever, reranker or FastEmbedReranker(
+                    settings.rerank_model), candidates=settings.rerank_candidates),
+            )
     except Exception as exc:
         print(f"error: {type(exc).__name__}: {exc}. Run `python -m scripts.ingest` first?",
               file=sys.stderr)
@@ -287,6 +324,10 @@ def main(
         "embedder": f"{settings.embedder} ({settings.embedding_model})",
         "k": args.k,
         "modes": modes,
+        "reranker": settings.rerank_model if any(m.endswith(RERANK_SUFFIX) for m in modes)
+        else None,
+        "rerank_candidates": settings.rerank_candidates
+        if any(m.endswith(RERANK_SUFFIX) for m in modes) else None,
         "cases_sha256": sha256_file(args.cases_file),
         "corpus_sha256": sha256_dir(settings.corpus_dir) if settings.corpus_dir.exists() else None,
         "n_cases_scored": len({r["case_id"] for r in results["rows"]}),

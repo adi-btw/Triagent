@@ -23,4 +23,16 @@ def build_retriever(settings: Settings) -> Retriever:
         )
     embedder = build_embedder(settings)
     store = build_store(settings, embedder)
-    return SearchRetriever(store, embedder, settings)
+    retriever: Retriever = SearchRetriever(store, embedder, settings)
+    if settings.rerank:
+        retriever = with_reranker(retriever, settings)
+    return retriever
+
+
+def with_reranker(base: Retriever, settings: Settings) -> Retriever:
+    """Wrap ``base`` in the cross-encoder second stage (loads the reranker model)."""
+    from app.retrieval.rerank import FastEmbedReranker, RerankingRetriever
+
+    return RerankingRetriever(
+        base, FastEmbedReranker(settings.rerank_model), candidates=settings.rerank_candidates
+    )
