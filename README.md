@@ -1,6 +1,6 @@
-# AI Incident Triage Assistant
+# Triagent
 
-Paste an error report or a short log excerpt. The assistant searches a corpus of synthetic runbooks
+**Evidence-grounded incident triage.** Paste an error report or a short log excerpt. Triagent searches a corpus of synthetic runbooks
 and past incident reports, and returns a **structured triage report**: severity (SEV1–4), likely causes,
 and next steps. **Every claim cites a retrieved passage**, and when the corpus doesn't cover the
 problem, the report **says so** instead of guessing.

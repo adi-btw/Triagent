@@ -1,6 +1,6 @@
 # The knowledge corpus
 
-The triage assistant can only be as good as what it can retrieve. `data/corpus/` is a small,
+Triagent can only be as good as what it can retrieve. `data/corpus/` is a small,
 synthetic knowledge base for a fictional e-commerce company: 26 Markdown docs (15 runbooks,
 9 past incidents, 2 policies). This page explains how it was designed and why.
 

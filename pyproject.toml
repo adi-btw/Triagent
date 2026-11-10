@@ -1,7 +1,7 @@
 [project]
-name = "incident-triage-assistant"
+name = "triagent"
 version = "0.1.0"
-description = "RAG + agentic incident triage assistant with citation validation and evaluation harness"
+description = "Evidence-grounded incident triage: RAG + agentic workflow with citation validation and evaluation harness"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",

@@ -40,7 +40,7 @@ from app.triage.service import run_triage
 STATIC_DIR = Path(__file__).parent / "static"
 
 app = FastAPI(
-    title="AI Incident Triage Assistant",
+    title="Triagent",
     version="0.1.0",
     description="Paste an incident; get a severity, likely causes and next steps, "
     "each citing retrieved runbook/incident passages.",

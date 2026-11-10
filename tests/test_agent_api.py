@@ -84,7 +84,7 @@ def test_root_serves_the_demo_ui(client):
     assert (STATIC_DIR / "index.html").exists()
     resp = client.get("/")
     assert resp.status_code == 200 and "text/html" in resp.headers["content-type"]
-    assert "Incident Triage Assistant" in resp.text and 'src="app.js"' in resp.text
+    assert "Triagent" in resp.text and 'src="app.js"' in resp.text
     assert client.get("/app.js").status_code == 200
     assert client.get("/app.css").status_code == 200
 
