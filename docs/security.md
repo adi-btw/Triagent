@@ -77,6 +77,14 @@ What limits them:
 - **corpus integrity**: treating runbooks as code, with review and an audit trail, is the real fix
   for poisoned documents.
 
+## Slack output
+
+Reports also reach Slack (docs/integrations.md), where markup has side effects:
+`<!channel>` pings a whole channel, and `<url|text>` disguises a link. Every model-written
+string is escaped before it goes into a Slack message, so an injected incident can't turn
+the report into a mass mention or a phishing link. Reports the validator rejects are posted
+as rejected, with their content withheld.
+
 ## Not covered
 
 Model-level jailbreaks unrelated to triage, denial of service (see the demo mode rate limits

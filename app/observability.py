@@ -137,6 +137,9 @@ VIOLATIONS = Counter(
 SEVERITY = Counter(
     "triagent_reports_by_severity", "Accepted reports by severity", ["severity"],
     registry=REGISTRY)
+WEBHOOK_EVENTS = Counter(
+    "triagent_integration_events", "Alert webhook and Slack events by outcome",
+    ["source", "outcome"], registry=REGISTRY)
 HTTP_ERRORS = Counter(
     "triagent_http_errors", "Non-2xx responses by route and status", ["route", "status"],
     registry=REGISTRY)

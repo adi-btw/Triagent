@@ -1,0 +1,29 @@
+{
+  "version": "4",
+  "status": "firing",
+  "groupKey": "{}:{alertname=\"PgConnExhausted\"}",
+  "commonLabels": {
+    "alertname": "PgConnExhausted",
+    "service": "checkout-api"
+  },
+  "commonAnnotations": {
+    "summary": "orders-db connections at 100%"
+  },
+  "alerts": [
+    {
+      "status": "firing",
+      "fingerprint": "abc",
+      "labels": {
+        "alertname": "PgConnExhausted",
+        "service": "checkout-api",
+        "pod": "p1"
+      },
+      "annotations": {
+        "description": "FATAL: sorry, too many clients already"
+      },
+      "startsAt": "2026-11-10T04:00:00Z"
+    }
+  ],
+  "externalURL": "http://alertmanager.internal:9093",
+  "receiver": "triagent"
+}

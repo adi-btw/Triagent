@@ -37,6 +37,7 @@ from app.deps import (
     ServiceUnavailable,
     SettingsDep,
 )
+from app.integrations.routes import router as integrations_router
 from app.llm.errors import LLMCallError
 from app.observability import REGISTRY, RequestContextMiddleware, configure_logging, record_triage
 from app.retrieval.base import Retriever
@@ -52,6 +53,7 @@ app = FastAPI(
     "each citing retrieved runbook/incident passages.",
 )
 app.add_middleware(RequestContextMiddleware)
+app.include_router(integrations_router)  # /webhooks/alert, /slack/commands
 configure_logging(_settings_at_startup())
 
 
@@ -145,6 +147,10 @@ def health(settings: SettingsDep, retriever_provider: RetrieverProviderDep) -> d
         "demo_samples_only": settings.demo_mode and not settings.gemini_api_key,
         "demo_requests_per_hour": settings.demo_requests_per_ip_per_hour
         if settings.demo_mode else None,
+        # Booleans only: never echo a secret or the webhook URL (it is a credential).
+        "integrations": {"alert_webhook": bool(settings.webhook_token),
+                         "slack_delivery": bool(settings.slack_webhook_url),
+                         "slack_commands": bool(settings.slack_signing_secret)},
     }
 
 

@@ -71,6 +71,14 @@ class Settings(BaseSettings):
     demo_proxy_hops: int = 1  # trusted proxies in front of the app (X-Forwarded-For)
     demo_cache_dir: Path = Path("data/demo_cache")
 
+    # Integrations (app/integrations/). Each endpoint is off until its secret is set.
+    webhook_token: str | None = None  # bearer token for POST /webhooks/alert
+    slack_webhook_url: str | None = None  # incoming webhook that receives alert triage
+    slack_signing_secret: str | None = None  # enables POST /slack/commands
+    integration_mode: Literal["rag", "agent"] = "rag"
+    alert_dedupe_ttl_s: float = 3600.0  # drop Alertmanager re-sends of the same group
+    integration_triages_per_hour: int = 60  # caps LLM calls an alert storm can cause
+
     # Agent limits (enforced by code, never by the model)
     agent_max_steps: int = 4
     agent_max_query_rewrites: int = 1

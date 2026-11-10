@@ -260,6 +260,24 @@ On all 96 real eval reports the guards flag **0 false positives**. The 2 remaini
 semantic understanding to catch, and are documented as residual risk. See
 [docs/security.md](docs/security.md).
 
+## Alert webhooks and Slack
+
+`POST /webhooks/alert` takes Prometheus Alertmanager (or Grafana) webhooks, or plain
+`{"title", "description"}` JSON. It triages each firing alert group in the background and
+posts the report to a Slack channel. A `/triage <incident>` slash command does the same from
+Slack. Bearer-token auth, Slack v0 signature checks with replay protection, dedupe of
+Alertmanager re-sends, an hourly cap on triages, and escaping so model output can't
+`@channel` or hide links. A rejected report is posted as rejected, never as an answer.
+Free to try locally with the fake LLM:
+
+```bash
+LLM_PROVIDER=fake WEBHOOK_TOKEN=local-test uvicorn app.main:app
+curl -X POST "localhost:8000/webhooks/alert?wait=true" -H "Authorization: Bearer local-test" \
+  -H "Content-Type: application/json" --data @examples/alertmanager-firing.json
+```
+
+See [docs/integrations.md](docs/integrations.md).
+
 ## Observability
 
 Every request gets an `X-Request-ID` and emits JSON logs (`LOG_FORMAT=json`), with no incident
@@ -282,12 +300,14 @@ app/
   agent/                     bounded decision loop, AgentDecision schema, agent prompts
   static/                    demo UI (plain HTML/JS, no build step)
   observability.py           request ids, JSON logs, Prometheus metrics, OpenTelemetry spans
+  integrations/              alert webhook parsing + dedupe, Slack Block Kit, signatures, routes
   demo.py                    public-demo guardrails (key-free mode, rate limits, budget)
-  main.py                    FastAPI: POST /triage, GET /health, GET /metrics, UI at /
+  main.py                    FastAPI: POST /triage, /webhooks/alert, /slack/commands, /health, /metrics
 data/corpus/                 26 synthetic runbooks, incidents and policies
 data/eval/cases.jsonl        32 labeled cases (answerable / insufficient_evidence / ambiguous)
 data/demo_cache/             pre-computed answers for the UI's sample incidents (demo mode)
 data/redteam/attacks.json    16 prompt-injection attacks (poisoned docs and incident text)
+examples/                    sample Alertmanager webhook payload
 eval/                        run_eval, retrieval_eval, retrieval_gate (CI), redteam (CI), metrics, judge
 finetune/README.md           stage 4 requirements (not implemented yet)
 docs/                        design notes per subsystem: decisions, trade-offs, FAQ
