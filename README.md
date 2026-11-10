@@ -107,8 +107,13 @@ The consistent pattern is that **pure vector search misses the most important do
 and keyword or hybrid search never does.** Incident text is full of exact tokens (`too many clients`,
 `max_connections`, `EAI_AGAIN`) that embeddings blur. The demo incident is one of the misses:
 near-miss documents about a table-lock outage and payment timeouts push the connection-exhaustion runbook out of
-the vector top 5. See [docs/retrieval.md](docs/retrieval.md). `RETRIEVAL_MODE` still defaults to
-`vector` so that "basic RAG" stays a true baseline. Hybrid is the obvious next experiment for the full evaluation.
+the vector top 5. **`RETRIEVAL_MODE` therefore defaults to `hybrid`.**
+
+**A cross-encoder reranker was tried and not adopted.** Reranking hybrid's top 20 with an MS MARCO
+cross-encoder cut primary-document hit from 100% to 64%. The best of four models (jina-v1-turbo) tied
+hybrid within noise and lost one primary hit. Web-trained rerankers don't value the exact log-token
+matches that dominate this corpus. The stage stays available behind `RERANK=true`, and the
+`+rerank` eval variants re-run the comparison. See [docs/retrieval.md](docs/retrieval.md).
 
 ### End-to-end (no_retrieval vs RAG vs agent)
 

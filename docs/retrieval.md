@@ -274,3 +274,59 @@ every request's evidence by `app/retrieval/pinned.py`:
 The trade-off is about 150 extra prompt tokens per request, in exchange for every report
 being able to justify its severity. Pinning suits small documents that apply to every
 request; anything incident-specific stays retrieved.
+
+## Default switched to hybrid
+
+The retrieval eval (`python -m eval.retrieval_eval`, 25 scored cases, k = 5) settled the
+open question from the full-corpus update above:
+
+| Metric @5 | vector | keyword | hybrid |
+|---|---|---|---|
+| Primary-doc hit | 88% [72–100] | 100% | 100% |
+| Doc recall | 52% [44–59] | 61% [55–67] | 59% [55–64] |
+| MRR (chunk) | 71% [56–86] | 80% [68–91] | 78% [65–90] |
+
+Vector-only misses the case's primary document in 3 of 25 cases; keyword and hybrid miss
+none. Keyword is marginally ahead of hybrid on recall, but the gap is inside the noise, and
+hybrid keeps the embedding signal for incidents written in prose rather than log lines
+(the ambiguous cases, where hybrid's vague-incident doc recall is 40% vs keyword's 33%).
+`RETRIEVAL_MODE` now defaults to `hybrid`. Vector mode is still available, and is what
+"basic RAG" meant before this change.
+
+## Cross-encoder reranking: tried, not adopted
+
+`app/retrieval/rerank.py` adds an optional second stage. The first-stage search returns
+`RERANK_CANDIDATES` (default 20) chunks, and a cross-encoder rescores each
+`(incident, title + heading + section)` pair and keeps the top k. A cross-encoder reads
+query and passage *together*, so it is usually more accurate than comparing two independent
+embeddings, at the cost of one model pass per pair. It's off by default (`RERANK=false`) because
+on this corpus it did not help:
+
+| Metric @5 (first stage: hybrid) | no rerank | MiniLM-L6 (ms-marco) | jina-v1-tiny | jina-v1-turbo |
+|---|---|---|---|---|
+| Primary-doc hit | **100%** | 64% [44–84] | 72% [52–88] | 96% [88–100] |
+| Doc recall | 59% [55–64] | 42% [34–49] | 53% [43–62] | 60% [54–66] |
+| Chunk recall | 61% [52–70] | 38% [27–50] | 45% [34–56] | 64% [54–73] |
+| MRR (chunk) | 78% [65–90] | 47% [33–61] | 48% [35–63] | 81% [68–93] |
+
+Reproduce with
+`python -m eval.retrieval_eval --modes hybrid hybrid+rerank --rerank-model <model>`.
+
+Why it hurts here:
+
+- **Domain mismatch.** MS MARCO rerankers are trained on short web questions against web
+  passages ("what is the capital of…"). An incident is a mix of prose, log lines and error codes.
+  The exact-token match BM25 rewards (`too many clients already`, `EAI_AGAIN`) is the strongest
+  signal in this corpus, and a web-trained cross-encoder doesn't weight it the way BM25 does.
+- **Truncation is not the cause.** Incidents are 3–62 words (median 41) and sections are short,
+  well inside the 512-token window. The 8k-context jina models confirmed this: the tiny one was
+  still worse than no reranking.
+- **The first stage is already at the ceiling** for the metric that matters most. Hybrid puts the
+  primary document in the top 5 for every case, so a reranker can only hold that or lose it. The
+  best model (jina-turbo) moves chunk recall and MRR by about 3 points, which is inside the
+  confidence intervals, and drops one primary-document hit.
+
+A reranker would earn its place on a larger corpus where the first stage's top 5 is
+crowded with near-misses, or after fine-tuning on (incident, relevant section) pairs from
+real tickets. The code path, tests and the `+rerank` eval variants stay, so that experiment is
+one command away.
