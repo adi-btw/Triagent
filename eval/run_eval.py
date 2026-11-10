@@ -3,6 +3,12 @@
     python -m eval.run_eval --modes no_retrieval rag agent
     python -m eval.run_eval --modes rag --cases case-001,case-005 --no-judge
     python -m eval.run_eval --modes rag agent --limit 5 --delay 6 --repeats 1
+    python -m eval.run_eval --no-cache          # force fresh LLM calls
+
+LLM answers are cached on disk by default (``app.llm.cache``, ``.cache/llm``). A run
+that stops on a quota error can simply be re-run: answered calls replay from the cache
+and only the missing ones reach the provider. Replayed calls are counted in the report
+metadata, because their latency does not include model time.
 
 Outputs, for run id ``<UTC timestamp>-<short sha>``:
 
@@ -171,6 +177,20 @@ def judge_case(result: CaseResult, judge_llm: LLMClient) -> None:
 # --------------------------------------------------------------------------- metadata
 
 
+def _cache_hits(*clients: LLMClient | None) -> str | None:
+    """"hits/total" over the caching clients used in this run, or None if none cached.
+
+    The judge usually shares the generation client's cache dir but is a separate wrapper,
+    so both are counted; the same object passed twice is counted once.
+    """
+    seen: dict[int, Any] = {id(c): c for c in clients if c is not None and hasattr(c, "hits")}
+    if not seen:
+        return None
+    hits = sum(c.hits for c in seen.values())
+    total = hits + sum(c.misses for c in seen.values())
+    return f"{hits}/{total}"
+
+
 def _git(*args: str) -> str | None:
     try:
         out = subprocess.run(
@@ -207,6 +227,8 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     p.add_argument("--delay", type=float, default=0.0,
                    help="seconds to sleep after each LLM-using unit (rate limits)")
     p.add_argument("--repeats", type=int, default=1, help="run every case x mode N times")
+    p.add_argument("--cache", action=argparse.BooleanOptionalAction, default=True,
+                   help="replay identical LLM calls from .cache/llm (default on)")
     p.add_argument("--out", type=Path, default=Path("eval/results"))
     p.add_argument("--cases-file", type=Path, default=DEFAULT_CASES_PATH)
     # Hidden: offline smoke tests only. Serves real corpus chunks by keyword overlap.
@@ -232,7 +254,7 @@ def main(
     2 setup error (bad case filter, no LLM). Per-case failures never abort the run.
     """
     args = parse_args(argv)
-    settings = settings or get_settings()
+    settings = (settings or get_settings()).model_copy(update={"llm_cache": args.cache})
     eval_settings = EvalSettings()
     modes: list[TriageMode] = list(dict.fromkeys(args.modes))
 
@@ -321,6 +343,8 @@ def main(
         f"seed {BOOTSTRAP_SEED}",
         "llm_calls_total": sum(r.llm_calls for r in results),
         "judge_calls_total": sum(r.judge_calls for r in results),
+        "llm_cache": bool(args.cache),
+        "llm_cache_hits": _cache_hits(llm, judge_llm if args.judge else None),
         "smoke": settings.llm_provider == "fake" or bool(args.fake_retriever),
     }
     summary = {"metadata": metadata, "metrics": compute_all(results, modes)}

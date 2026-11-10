@@ -223,6 +223,7 @@ def _decide(run: _Run, llm: LLMClient, allowed: list[AgentAction]) -> AgentDecis
         "allowed": allowed,
         "input_tokens": result.input_tokens,
         "output_tokens": result.output_tokens,
+        "cached": result.cached,
     }
     decision: AgentDecision | None = None
     error = "output was not valid JSON"

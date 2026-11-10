@@ -5,6 +5,16 @@ from app.llm.base import LLMClient
 from app.llm.errors import LLMConfigError
 
 
+def with_cache(client: LLMClient, settings: Settings) -> LLMClient:
+    """Wrap ``client`` in the disk cache when ``settings.llm_cache`` is on."""
+    if not settings.llm_cache:
+        return client
+    from app.llm.cache import CachingLLM
+
+    extra = f"gemini_thinking_level={settings.gemini_thinking_level}"
+    return CachingLLM(client, settings.llm_cache_dir, extra_key=extra)
+
+
 def build_llm(settings: Settings) -> LLMClient:
     """Return the configured ``LLMClient``.
 
@@ -24,10 +34,11 @@ def build_llm(settings: Settings) -> LLMClient:
             )
         from app.llm.gemini import GeminiClient
 
-        return GeminiClient(
+        client = GeminiClient(
             api_key=settings.gemini_api_key,
             model=settings.gemini_model,
             timeout_s=settings.llm_timeout_s,
             thinking_level=settings.gemini_thinking_level,
         )
+        return with_cache(client, settings)
     raise LLMConfigError(f"Unknown llm_provider: {settings.llm_provider!r}")

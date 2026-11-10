@@ -155,6 +155,7 @@ def generate_report(
             "input_tokens": result.input_tokens,
             "output_tokens": result.output_tokens,
             "parsed_json": result.parsed is not None,
+            "cached": result.cached,
         },
     )
     return result, step

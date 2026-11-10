@@ -163,6 +163,7 @@ def _metadata(meta: dict) -> list[str]:
         ("bootstrap", "Bootstrap"),
         ("llm_calls_total", "LLM calls made (generation)"),
         ("judge_calls_total", "LLM calls made (judge)"),
+        ("llm_cache_hits", "LLM calls replayed from cache (latency excludes model time)"),
         ("retriever_build_error", "Retriever build error"),
     ]
     lines = []

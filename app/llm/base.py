@@ -10,6 +10,7 @@ class LLMResult(BaseModel):
     latency_ms: float
     input_tokens: int | None = None
     output_tokens: int | None = None
+    cached: bool = False  # True when served from app.llm.cache instead of the provider
 
 
 class LLMClient(Protocol):

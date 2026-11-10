@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     gemini_thinking_level: Literal["minimal", "low", "medium", "high"] | None = "low"
     llm_temperature: float = 0.0
     llm_timeout_s: float = 120.0
+    # Disk cache of LLM answers (app/llm/cache.py). Off for the app; the eval turns it on.
+    llm_cache: bool = False
+    llm_cache_dir: Path = Path(".cache/llm")
 
     # Retrieval
     top_k: int = 5
@@ -38,6 +41,10 @@ class Settings(BaseSettings):
     # Docs added to every request's evidence regardless of ranking (see app/retrieval/pinned.py).
     # The severity rubric applies to every incident, so it must not depend on search ranking.
     pinned_doc_ids: list[str] = ["POL-SEV-001"]
+    # Second-stage cross-encoder reranking (app/retrieval/rerank.py).
+    rerank: bool = False
+    rerank_model: str = "Xenova/ms-marco-MiniLM-L-6-v2"
+    rerank_candidates: int = 20  # first-stage depth handed to the reranker
 
     # Agent limits (enforced by code, never by the model)
     agent_max_steps: int = 4
