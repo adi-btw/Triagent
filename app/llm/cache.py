@@ -106,5 +106,5 @@ class CachingLLM:
         body = json.dumps({"format": CACHE_FORMAT, "result": result.model_dump()}, indent=1)
         # Write-then-rename so an interrupted run never leaves a half-written entry.
         tmp = path.with_suffix(f".{os.getpid()}.tmp")
-        tmp.write_text(body, encoding="utf-8")
+        tmp.write_text(body, encoding="utf-8", newline="\n")
         os.replace(tmp, path)

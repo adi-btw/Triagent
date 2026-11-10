@@ -1,0 +1,15 @@
+.git
+.github
+.venv
+.cache
+.claude
+.worktrees
+.pytest_cache
+.ruff_cache
+**/__pycache__
+*.egg-info
+.env
+eval/results/runs
+tests
+docs
+finetune

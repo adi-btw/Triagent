@@ -1,0 +1,13 @@
+# Render Blueprint: New > Blueprint > pick this repo. Builds the Dockerfile; the only
+# value to supply is GEMINI_API_KEY (marked sync: false, so Render prompts for it).
+services:
+  - type: web
+    name: triagent
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DEMO_LLM_CALLS_PER_DAY
+        value: "300"

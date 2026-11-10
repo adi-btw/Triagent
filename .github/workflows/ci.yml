@@ -101,3 +101,43 @@ jobs:
         run: |
           python -m scripts.ingest --backend postgres
           python -m eval.retrieval_gate
+
+  docker:
+    name: Docker image (build + demo smoke test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: docker build -t triagent:ci .
+      - name: Start (demo mode, deliberately invalid API key)
+        run: |
+          docker run -d --name app -p 7860:7860 -e GEMINI_API_KEY=invalid-ci-key triagent:ci
+          for i in $(seq 1 60); do
+            curl -fsS localhost:7860/health > health.json 2>/dev/null && break
+            sleep 2
+          done
+          cat health.json
+          python3 -c "import json; h = json.load(open('health.json')); assert h['index_ok'] and h['demo_mode'], h"
+      - name: Sample incidents are served from the baked-in demo cache
+        # With an invalid key, any answer that is not cached would fail with 502.
+        run: |
+          docker exec app python - <<'PY'
+          import json, urllib.request
+          from scripts.seed_demo_cache import sample_incidents
+          samples = sample_incidents(open("app/static/app.js", encoding="utf-8").read())
+          for name, incident in samples.items():
+              for mode in ("no_retrieval", "rag", "agent"):
+                  req = urllib.request.Request(
+                      "http://localhost:7860/triage",
+                      data=json.dumps({"incident": incident, "mode": mode}).encode(),
+                      headers={"Content-Type": "application/json"},
+                  )
+                  body = json.load(urllib.request.urlopen(req, timeout=60))
+                  print(name, mode, body["status"])
+                  assert body["status"] == "ok", body
+          PY
+      - name: UI is served
+        run: curl -fsS localhost:7860/ | grep -q "Triagent"
+      - name: Container logs
+        if: always()
+        run: docker logs app | tail -50
