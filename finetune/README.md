@@ -1,9 +1,12 @@
 # Stage 4 (optional): QLoRA fine-tuning for severity classification
 
-**Status: built; zero-shot baseline measured; training runs on a free Colab T4.** This
-document defines the experiment, the data and hardware it needs, and the go/no-go
-criteria that were checked before the training code was written. The dataset, training
-and evaluation code are below. Results are in [results/](results/).
+**Status: done.** QLoRA lifts Qwen2.5-1.5B-Instruct from **28.0% to 88.5%** exact
+severity on 200 held-out incidents (paired 95% CI on the gain: +52.5 to +68.5 points).
+Every answer is within one level, after 11 minutes of training on a free Colab T4.
+Full results, error analysis and provenance: [results/README.md](results/README.md).
+
+This document defines the experiment, the data and hardware it needs, and the go/no-go
+criteria that were checked before the training code was written.
 
 ## Running it (free)
 
@@ -104,9 +107,11 @@ runs in the cloud. Inference with the trained adapter can then run on a CPU.
 the effect of fine-tuning is easiest to see on a model that starts out weak. Pick whichever current small
 instruct model has a permissive license when you start. The names above are examples.
 
-**Software stack:** `transformers`, `peft`, `bitsandbytes`, `trl` (SFTTrainer), `datasets`, and
-`accelerate`. Pin the versions in a separate `finetune/requirements.txt`, so the main app never depends
-on CUDA.
+**Software stack (as built):** `transformers` (plain `Trainer` with a completion-masking
+collator, so no `trl`), `peft`, `bitsandbytes` and `accelerate`, pinned in a separate
+`finetune/requirements.txt` so the main app never depends on CUDA. `datasets` was dropped:
+a list of encoded rows is already a valid dataset for `Trainer`, and the pinned `datasets`
+didn't support Colab's Python 3.13. `bitsandbytes` is left unpinned so it matches Colab's CUDA build.
 
 ## What was built
 

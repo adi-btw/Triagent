@@ -1,0 +1,4671 @@
+{
+ "base": "Qwen/Qwen2.5-1.5B-Instruct",
+ "adapter": null,
+ "split": "finetune/data/test.jsonl",
+ "device": "cuda",
+ "dtype": "float16",
+ "metrics": {
+  "n": 200,
+  "accuracy": 0.28,
+  "accuracy_ci": [
+   0.22,
+   0.345
+  ],
+  "macro_f1": 0.1555122373835824,
+  "f1": {
+   "SEV1": 0.21052631578947367,
+   "SEV2": 0.0,
+   "SEV3": 0.411522633744856,
+   "SEV4": 0.0
+  },
+  "within_one": 0.78,
+  "under_rated": 93,
+  "over_rated": 51,
+  "confusion": {
+   "SEV1": {
+    "SEV1": 6,
+    "SEV2": 0,
+    "SEV3": 44,
+    "SEV4": 0
+   },
+   "SEV2": {
+    "SEV1": 1,
+    "SEV2": 0,
+    "SEV3": 49,
+    "SEV4": 0
+   },
+   "SEV3": {
+    "SEV1": 0,
+    "SEV2": 0,
+    "SEV3": 50,
+    "SEV4": 0
+   },
+   "SEV4": {
+    "SEV1": 0,
+    "SEV2": 0,
+    "SEV3": 50,
+    "SEV4": 0
+   }
+  },
+  "by_template": {
+   "autoscaler_stuck": 0.2903225806451613,
+   "cache_stampede": 0.42857142857142855,
+   "cert_expiry": 0.5,
+   "pipeline_broken": 0.0,
+   "public_bucket": 0.5,
+   "queue_backlog": 0.36363636363636365,
+   "staging_down": 0.0
+  },
+  "boundary": {
+   "n": 34,
+   "accuracy": 0.3235294117647059
+  },
+  "predicted_mix": {
+   "SEV3": 193,
+   "SEV1": 7
+  },
+  "ms_per_example": 89.42651762499992
+ },
+ "rows": [
+  {
+   "id": "test-0028",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 60.0,
+    "full_outage": false,
+    "latency_mult": 4.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.6891963481903076,
+    "SEV2": -1.1423213481903076,
+    "SEV3": -0.4235714077949524,
+    "SEV4": -6.720446586608887
+   },
+   "ms": 7413.040592000016
+  },
+  {
+   "id": "test-0097",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 7.0,
+    "full_outage": false,
+    "latency_mult": 1.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.62366247177124,
+    "SEV2": -2.0299124717712402,
+    "SEV3": -0.15491251647472382,
+    "SEV4": -6.06116247177124
+   },
+   "ms": 87.24361099996258
+  },
+  {
+   "id": "test-0131",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 30.0,
+    "full_outage": false,
+    "latency_mult": 1.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.2680037021636963,
+    "SEV2": -1.5805037021636963,
+    "SEV3": -0.4555037021636963,
+    "SEV4": -2.8773787021636963
+   },
+   "ms": 83.85382400001617
+  },
+  {
+   "id": "test-0039",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 4.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.079188346862793,
+    "SEV2": -2.001063346862793,
+    "SEV3": -0.31356340646743774,
+    "SEV4": -4.719813346862793
+   },
+   "ms": 44.92953400000488
+  },
+  {
+   "id": "test-0199",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the internal wiki",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -6.870080947875977,
+    "SEV2": -5.182580947875977,
+    "SEV3": -0.010706011205911636,
+    "SEV4": -5.526330947875977
+   },
+   "ms": 157.3739449999607
+  },
+  {
+   "id": "test-0185",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the corporate VPN",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.373854160308838,
+    "SEV2": -2.155104160308838,
+    "SEV3": -0.26447924971580505,
+    "SEV4": -2.498854160308838
+   },
+   "ms": 40.82092899994905
+  },
+  {
+   "id": "test-0149",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 0.8,
+    "full_outage": false,
+    "latency_mult": 2.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.200293064117432,
+    "SEV2": -1.4815433025360107,
+    "SEV3": -0.27841824293136597,
+    "SEV4": -7.231543064117432
+   },
+   "ms": 43.14638699997886
+  },
+  {
+   "id": "test-0074",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 35.0,
+    "full_outage": false,
+    "latency_mult": 3.7,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.72799825668335,
+    "SEV2": -2.4311232566833496,
+    "SEV3": -0.10299818217754364,
+    "SEV4": -6.83737325668335
+   },
+   "ms": 43.774969000025976
+  },
+  {
+   "id": "test-0155",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the deploy pipeline",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.0723888874053955,
+    "SEV2": -2.2598888874053955,
+    "SEV3": -0.3067638576030731,
+    "SEV4": -3.3848888874053955
+   },
+   "ms": 45.9223990000055
+  },
+  {
+   "id": "test-0077",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 6.0,
+    "full_outage": false,
+    "latency_mult": 3.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.760775089263916,
+    "SEV2": -1.182650089263916,
+    "SEV3": -0.401400089263916,
+    "SEV4": -7.042025089263916
+   },
+   "ms": 44.1666800000462
+  },
+  {
+   "id": "test-0043",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 4.7,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.664222002029419,
+    "SEV2": -2.414222002029419,
+    "SEV3": -0.13297198712825775,
+    "SEV4": -4.66422176361084
+   },
+   "ms": 44.27054100000305
+  },
+  {
+   "id": "test-0175",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the data warehouse",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.3686916828155518,
+    "SEV2": -2.8061916828155518,
+    "SEV3": -0.665566623210907,
+    "SEV4": -1.1030666828155518
+   },
+   "ms": 43.262469000012516
+  },
+  {
+   "id": "test-0071",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the deploy pipeline",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.9575114250183105,
+    "SEV2": -2.0981364250183105,
+    "SEV3": -0.22313639521598816,
+    "SEV4": -3.6762614250183105
+   },
+   "ms": 42.34740200001852
+  },
+  {
+   "id": "test-0092",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 33.0,
+    "full_outage": false,
+    "latency_mult": 5.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.871802568435669,
+    "SEV2": -1.106177568435669,
+    "SEV3": -0.43430256843566895,
+    "SEV4": -7.37180233001709
+   },
+   "ms": 43.167454000013095
+  },
+  {
+   "id": "test-0089",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 42.0,
+    "full_outage": false,
+    "latency_mult": 3.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.4808349609375,
+    "SEV2": -2.637085199356079,
+    "SEV3": -0.09021012485027313,
+    "SEV4": -5.6995849609375
+   },
+   "ms": 46.51820300000509
+  },
+  {
+   "id": "test-0029",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 4.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.841498851776123,
+    "SEV2": -1.638373851776123,
+    "SEV3": -0.24774888157844543,
+    "SEV4": -5.607123851776123
+   },
+   "ms": 43.52202699999452
+  },
+  {
+   "id": "test-0113",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "recommendations-api",
+    "error_pct": 60.0,
+    "full_outage": false,
+    "latency_mult": 5.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.512423992156982,
+    "SEV2": -2.1061737537384033,
+    "SEV3": -0.1374238282442093,
+    "SEV4": -5.934298992156982
+   },
+   "ms": 56.711548999999195
+  },
+  {
+   "id": "test-0090",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 24.0,
+    "full_outage": false,
+    "latency_mult": 1.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.3510429859161377,
+    "SEV2": -1.2416679859161377,
+    "SEV3": -0.8197929859161377,
+    "SEV4": -4.460417747497559
+   },
+   "ms": 59.201317999963976
+  },
+  {
+   "id": "test-0051",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "Grafana",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.8939638137817383,
+    "SEV2": -2.3783388137817383,
+    "SEV3": -0.2533388137817383,
+    "SEV4": -2.5814638137817383
+   },
+   "ms": 44.51912000001812
+  },
+  {
+   "id": "test-0065",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 10.0,
+    "full_outage": false,
+    "latency_mult": 5.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.9771504402160645,
+    "SEV2": -1.3677754402160645,
+    "SEV3": -0.32090047001838684,
+    "SEV4": -6.8365254402160645
+   },
+   "ms": 47.654271999988396
+  },
+  {
+   "id": "test-0013",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 1.7,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV1",
+   "scores": {
+    "SEV1": -0.7270830273628235,
+    "SEV2": -1.9458329677581787,
+    "SEV3": -1.0552079677581787,
+    "SEV4": -3.6645829677581787
+   },
+   "ms": 55.77505800005156
+  },
+  {
+   "id": "test-0006",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 3.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.711133360862732,
+    "SEV2": -2.2580084800720215,
+    "SEV3": -0.5236333608627319,
+    "SEV4": -2.1017584800720215
+   },
+   "ms": 58.4138179999627
+  },
+  {
+   "id": "test-0078",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 1.5,
+    "full_outage": false,
+    "latency_mult": 4.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.1038920879364014,
+    "SEV2": -1.6976420879364014,
+    "SEV3": -0.26014208793640137,
+    "SEV4": -6.8538923263549805
+   },
+   "ms": 44.68805300001577
+  },
+  {
+   "id": "test-0188",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "CI (Jenkins)",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.300113201141357,
+    "SEV2": -4.596988201141357,
+    "SEV3": -0.018863335251808167,
+    "SEV4": -5.628238201141357
+   },
+   "ms": 42.85977899996851
+  },
+  {
+   "id": "test-0120",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 2.0,
+    "full_outage": false,
+    "latency_mult": 2.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.4420052766799927,
+    "SEV2": -1.1763802766799927,
+    "SEV3": -0.8170052766799927,
+    "SEV4": -4.317005157470703
+   },
+   "ms": 57.42420500001799
+  },
+  {
+   "id": "test-0080",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 0.5,
+    "full_outage": false,
+    "latency_mult": 7.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.4026079177856445,
+    "SEV2": -2.3088576793670654,
+    "SEV3": -0.12135768681764603,
+    "SEV4": -5.9338579177856445
+   },
+   "ms": 58.420980999983385
+  },
+  {
+   "id": "test-0150",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the admin console",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.8716390132904053,
+    "SEV2": -1.9185140132904053,
+    "SEV3": -0.48101407289505005,
+    "SEV4": -2.5122640132904053
+   },
+   "ms": 43.44713400001865
+  },
+  {
+   "id": "test-0027",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 86.0,
+    "full_outage": false,
+    "latency_mult": 3.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.9716176986694336,
+    "SEV2": -1.8622426986694336,
+    "SEV3": -0.3778676986694336,
+    "SEV4": -3.9091176986694336
+   },
+   "ms": 58.093013000018345
+  },
+  {
+   "id": "test-0058",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 1.5,
+    "full_outage": false,
+    "latency_mult": 5.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.2761852741241455,
+    "SEV2": -2.1668102741241455,
+    "SEV3": -0.16681021451950073,
+    "SEV4": -6.635560035705566
+   },
+   "ms": 45.64782700003889
+  },
+  {
+   "id": "test-0187",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the deploy pipeline",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.136690139770508,
+    "SEV2": -3.855440139770508,
+    "SEV3": -0.04294007271528244,
+    "SEV4": -5.324190139770508
+   },
+   "ms": 43.06062300003077
+  },
+  {
+   "id": "test-0129",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 4.8,
+    "full_outage": false,
+    "latency_mult": 3.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.736210346221924,
+    "SEV2": -1.6112102270126343,
+    "SEV3": -0.23621021211147308,
+    "SEV4": -6.236210346221924
+   },
+   "ms": 57.05291800001078
+  },
+  {
+   "id": "test-0159",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "CI (Jenkins)",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.493605613708496,
+    "SEV2": -4.009230613708496,
+    "SEV3": -0.024855397641658783,
+    "SEV4": -6.087355613708496
+   },
+   "ms": 45.19344800002045
+  },
+  {
+   "id": "test-0088",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 35.0,
+    "full_outage": false,
+    "latency_mult": 1.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.7046639919281006,
+    "SEV2": -1.6265389919281006,
+    "SEV3": -0.25153905153274536,
+    "SEV4": -6.75153923034668
+   },
+   "ms": 58.63881400000537
+  },
+  {
+   "id": "test-0069",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 4.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV1",
+   "scores": {
+    "SEV1": -0.7398065328598022,
+    "SEV2": -1.9585565328598022,
+    "SEV3": -1.0523065328598022,
+    "SEV4": -3.427306652069092
+   },
+   "ms": 57.733412999994016
+  },
+  {
+   "id": "test-0076",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the data warehouse",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.5422873497009277,
+    "SEV2": -2.6985373497009277,
+    "SEV3": -0.5110374689102173,
+    "SEV4": -1.3704124689102173
+   },
+   "ms": 43.67078900003207
+  },
+  {
+   "id": "test-0142",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 3.0,
+    "full_outage": false,
+    "latency_mult": 2.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.6089749336242676,
+    "SEV2": -1.4370999336242676,
+    "SEV3": -0.3745998740196228,
+    "SEV4": -6.733974933624268
+   },
+   "ms": 43.539324999983364
+  },
+  {
+   "id": "test-0068",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 1.5,
+    "full_outage": false,
+    "latency_mult": 3.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.055599689483643,
+    "SEV2": -1.758724570274353,
+    "SEV3": -0.21184954047203064,
+    "SEV4": -6.633724689483643
+   },
+   "ms": 59.29027000001952
+  },
+  {
+   "id": "test-0192",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the feature-flag dashboard",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.683528184890747,
+    "SEV2": -2.402278184890747,
+    "SEV3": -0.1366530954837799,
+    "SEV4": -4.417902946472168
+   },
+   "ms": 44.19344100000444
+  },
+  {
+   "id": "test-0118",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "recommendations-api",
+    "error_pct": 15.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.198496341705322,
+    "SEV2": -2.3859965801239014,
+    "SEV3": -0.10474646836519241,
+    "SEV4": -6.260996341705322
+   },
+   "ms": 57.418378000022585
+  },
+  {
+   "id": "test-0012",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 55.0,
+    "full_outage": false,
+    "latency_mult": 3.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.900833606719971,
+    "SEV2": -1.6977084875106812,
+    "SEV3": -0.21333348751068115,
+    "SEV4": -6.463333606719971
+   },
+   "ms": 61.529054000004635
+  },
+  {
+   "id": "test-0022",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 51.0,
+    "full_outage": false,
+    "latency_mult": 5.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.8832117319107056,
+    "SEV2": -1.8363367319107056,
+    "SEV3": -0.39883676171302795,
+    "SEV4": -4.055086612701416
+   },
+   "ms": 60.11488800004372
+  },
+  {
+   "id": "test-0105",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 3.0,
+    "full_outage": false,
+    "latency_mult": 1.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.6521387100219727,
+    "SEV2": -1.7302638292312622,
+    "SEV3": -0.2302638292312622,
+    "SEV4": -5.995888710021973
+   },
+   "ms": 59.983907000003
+  },
+  {
+   "id": "test-0048",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 5.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.7263062000274658,
+    "SEV2": -2.288806200027466,
+    "SEV3": -0.507556140422821,
+    "SEV4": -2.132556200027466
+   },
+   "ms": 57.91573400000516
+  },
+  {
+   "id": "test-0108",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 0.4,
+    "full_outage": false,
+    "latency_mult": 1.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.538987874984741,
+    "SEV2": -1.6952378749847412,
+    "SEV3": -0.242112934589386,
+    "SEV4": -6.02336311340332
+   },
+   "ms": 56.85050600004615
+  },
+  {
+   "id": "test-0117",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "recommendations-api",
+    "error_pct": 30.0,
+    "full_outage": false,
+    "latency_mult": 6.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.1235785484313965,
+    "SEV2": -2.1079533100128174,
+    "SEV3": -0.13920335471630096,
+    "SEV4": -5.9985785484313965
+   },
+   "ms": 44.68062299997655
+  },
+  {
+   "id": "test-0106",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "search-api",
+    "error_pct": 2.0,
+    "full_outage": false,
+    "latency_mult": 2.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.588540077209473,
+    "SEV2": -1.963539958000183,
+    "SEV3": -0.16666491329669952,
+    "SEV4": -5.822915077209473
+   },
+   "ms": 44.20162500002789
+  },
+  {
+   "id": "test-0124",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 60.0,
+    "full_outage": false,
+    "latency_mult": 7.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.169742584228516,
+    "SEV2": -2.3259923458099365,
+    "SEV3": -0.12286736816167831,
+    "SEV4": -4.404117584228516
+   },
+   "ms": 60.05893499997228
+  },
+  {
+   "id": "test-0050",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 3.0,
+    "full_outage": false,
+    "latency_mult": 6.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.0736212730407715,
+    "SEV2": -2.2454962730407715,
+    "SEV3": -0.12049636989831924,
+    "SEV4": -6.5892462730407715
+   },
+   "ms": 59.86724300004198
+  },
+  {
+   "id": "test-0005",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 52.0,
+    "full_outage": false,
+    "latency_mult": 2.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.9251515865325928,
+    "SEV2": -1.5970265865325928,
+    "SEV3": -0.25327664613723755,
+    "SEV4": -6.503276824951172
+   },
+   "ms": 58.254074999979366
+  },
+  {
+   "id": "test-0002",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 89.0,
+    "full_outage": false,
+    "latency_mult": 3.7,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.373273849487305,
+    "SEV2": -2.1545238494873047,
+    "SEV3": -0.13889889419078827,
+    "SEV4": -6.810773849487305
+   },
+   "ms": 44.14495599996826
+  },
+  {
+   "id": "test-0055",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "CI (Jenkins)",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.8728084564208984,
+    "SEV2": -2.3728084564208984,
+    "SEV3": -0.20093341171741486,
+    "SEV4": -3.4353084564208984
+   },
+   "ms": 44.801499000016065
+  },
+  {
+   "id": "test-0079",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 7.0,
+    "full_outage": false,
+    "latency_mult": 1.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.7318027019500732,
+    "SEV2": -1.0286777019500732,
+    "SEV3": -0.48180270195007324,
+    "SEV4": -7.028677940368652
+   },
+   "ms": 44.53482299999223
+  },
+  {
+   "id": "test-0008",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 56.0,
+    "full_outage": false,
+    "latency_mult": 2.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.4323816299438477,
+    "SEV2": -1.4011316299438477,
+    "SEV3": -0.6980066299438477,
+    "SEV4": -4.057381629943848
+   },
+   "ms": 58.17286299998159
+  },
+  {
+   "id": "test-0000",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 52.0,
+    "full_outage": false,
+    "latency_mult": 3.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.3739800453186035,
+    "SEV2": -2.4364800453186035,
+    "SEV3": -0.10835500061511993,
+    "SEV4": -5.9521050453186035
+   },
+   "ms": 45.47969700001886
+  },
+  {
+   "id": "test-0100",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 15.0,
+    "full_outage": false,
+    "latency_mult": 5.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.779629707336426,
+    "SEV2": -2.576504707336426,
+    "SEV3": -0.09212963283061981,
+    "SEV4": -5.639004707336426
+   },
+   "ms": 69.9052820000361
+  },
+  {
+   "id": "test-0135",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 4.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.22183895111084,
+    "SEV2": -2.44058895111084,
+    "SEV3": -0.1437140256166458,
+    "SEV4": -3.44058895111084
+   },
+   "ms": 59.81304099998397
+  },
+  {
+   "id": "test-0095",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 1.5,
+    "full_outage": false,
+    "latency_mult": 4.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.633714437484741,
+    "SEV2": -1.3993395566940308,
+    "SEV3": -0.3212145268917084,
+    "SEV4": -6.47746467590332
+   },
+   "ms": 57.811792999984846
+  },
+  {
+   "id": "test-0152",
+   "template": "staging_down",
+   "facts": {
+    "kind": "no_impact",
+    "service": "cart-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.2435450553894043,
+    "SEV2": -2.4466700553894043,
+    "SEV3": -0.16542012989521027,
+    "SEV4": -3.6185450553894043
+   },
+   "ms": 49.57025800001702
+  },
+  {
+   "id": "test-0007",
+   "template": "public_bucket",
+   "facts": {
+    "kind": "data_security",
+    "service": "orders-db",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": true
+   },
+   "label": "SEV1",
+   "pred": "SEV1",
+   "scores": {
+    "SEV1": -0.8981791734695435,
+    "SEV2": -1.7419291734695435,
+    "SEV3": -1.4294291734695435,
+    "SEV4": -1.7263041734695435
+   },
+   "ms": 62.58068700003605
+  },
+  {
+   "id": "test-0180",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the deploy pipeline",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.8470242023468018,
+    "SEV2": -2.0345242023468018,
+    "SEV3": -0.23764926195144653,
+    "SEV4": -3.7845242023468018
+   },
+   "ms": 49.85569399997303
+  },
+  {
+   "id": "test-0195",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the feature-flag dashboard",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.0002617835998535,
+    "SEV2": -2.4533870220184326,
+    "SEV3": -0.14088693261146545,
+    "SEV4": -3.6096370220184326
+   },
+   "ms": 48.51147499999797
+  },
+  {
+   "id": "test-0171",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the on-call paging tool",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -7.6927361488342285,
+    "SEV2": -5.6146111488342285,
+    "SEV3": -0.00523636257275939,
+    "SEV4": -6.8021111488342285
+   },
+   "ms": 44.766554000034375
+  },
+  {
+   "id": "test-0138",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 0.4,
+    "full_outage": false,
+    "latency_mult": 2.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.337863445281982,
+    "SEV2": -1.2597382068634033,
+    "SEV3": -0.3534882366657257,
+    "SEV4": -6.947238445281982
+   },
+   "ms": 57.3523420000015
+  },
+  {
+   "id": "test-0139",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "recommendations-api",
+    "error_pct": 15.0,
+    "full_outage": false,
+    "latency_mult": 2.8,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.245959758758545,
+    "SEV2": -2.245959520339966,
+    "SEV3": -0.12095955014228821,
+    "SEV4": -5.870959758758545
+   },
+   "ms": 59.82078200003116
+  },
+  {
+   "id": "test-0047",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 4.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.271341323852539,
+    "SEV2": -1.6463414430618286,
+    "SEV3": -0.2713414430618286,
+    "SEV4": -4.974466323852539
+   },
+   "ms": 46.643223999979
+  },
+  {
+   "id": "test-0083",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 6.0,
+    "full_outage": false,
+    "latency_mult": 4.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.908388614654541,
+    "SEV2": -1.4396387338638306,
+    "SEV3": -0.29901373386383057,
+    "SEV4": -6.611513614654541
+   },
+   "ms": 46.10846200000651
+  },
+  {
+   "id": "test-0182",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "Grafana",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.73951530456543,
+    "SEV2": -4.47389030456543,
+    "SEV3": -0.02076551876962185,
+    "SEV4": -5.13014030456543
+   },
+   "ms": 45.02161300001717
+  },
+  {
+   "id": "test-0099",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the internal wiki",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.647745132446289,
+    "SEV2": -2.585245132446289,
+    "SEV3": -0.21024514734745026,
+    "SEV4": -2.428995132446289
+   },
+   "ms": 45.25545700005296
+  },
+  {
+   "id": "test-0053",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 6.0,
+    "full_outage": false,
+    "latency_mult": 5.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.479892730712891,
+    "SEV2": -2.0736429691314697,
+    "SEV3": -0.15176795423030853,
+    "SEV4": -5.589267730712891
+   },
+   "ms": 59.27327899996726
+  },
+  {
+   "id": "test-0059",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 5.5,
+    "full_outage": false,
+    "latency_mult": 2.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.405320405960083,
+    "SEV2": -1.749070405960083,
+    "SEV3": -0.577195405960083,
+    "SEV4": -3.952195405960083
+   },
+   "ms": 60.050982000007025
+  },
+  {
+   "id": "test-0134",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 8.0,
+    "full_outage": false,
+    "latency_mult": 5.8,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.407816410064697,
+    "SEV2": -2.345316171646118,
+    "SEV3": -0.11094123125076294,
+    "SEV4": -5.360941410064697
+   },
+   "ms": 59.77999500004216
+  },
+  {
+   "id": "test-0014",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 67.0,
+    "full_outage": false,
+    "latency_mult": 2.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -0.9454730749130249,
+    "SEV2": -1.961098074913025,
+    "SEV3": -0.7892230749130249,
+    "SEV4": -4.1017231941223145
+   },
+   "ms": 60.120632999996815
+  },
+  {
+   "id": "test-0141",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 8.0,
+    "full_outage": false,
+    "latency_mult": 2.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.871376037597656,
+    "SEV2": -1.7932512760162354,
+    "SEV3": -0.19950124621391296,
+    "SEV4": -4.996376037597656
+   },
+   "ms": 60.983503999977984
+  },
+  {
+   "id": "test-0066",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 44.0,
+    "full_outage": false,
+    "latency_mult": 2.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.089599609375,
+    "SEV2": -1.308349609375,
+    "SEV3": -0.3395995497703552,
+    "SEV4": -6.995849609375
+   },
+   "ms": 46.739127999956054
+  },
+  {
+   "id": "test-0140",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "search-api",
+    "error_pct": 2.0,
+    "full_outage": false,
+    "latency_mult": 5.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.0285162925720215,
+    "SEV2": -1.544141411781311,
+    "SEV3": -0.48164141178131104,
+    "SEV4": -3.2941412925720215
+   },
+   "ms": 59.94082500001241
+  },
+  {
+   "id": "test-0176",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the admin console",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.643481254577637,
+    "SEV2": -4.690356254577637,
+    "SEV3": -0.01848108321428299,
+    "SEV4": -5.190356254577637
+   },
+   "ms": 45.59558500000094
+  },
+  {
+   "id": "test-0073",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 24.0,
+    "full_outage": false,
+    "latency_mult": 4.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.82274055480957,
+    "SEV2": -1.5727406740188599,
+    "SEV3": -0.24461565911769867,
+    "SEV4": -6.52586555480957
+   },
+   "ms": 57.61796899997762
+  },
+  {
+   "id": "test-0103",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 2.0,
+    "full_outage": false,
+    "latency_mult": 1.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.468021869659424,
+    "SEV2": -1.280522108078003,
+    "SEV3": -0.34302204847335815,
+    "SEV4": -6.905521869659424
+   },
+   "ms": 58.679381000047215
+  },
+  {
+   "id": "test-0024",
+   "template": "public_bucket",
+   "facts": {
+    "kind": "data_security",
+    "service": "cart-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": true
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.1259574890136719,
+    "SEV2": -1.6103324890136719,
+    "SEV3": -1.0478324890136719,
+    "SEV4": -2.079082489013672
+   },
+   "ms": 54.852193000044736
+  },
+  {
+   "id": "test-0136",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 4.8,
+    "full_outage": false,
+    "latency_mult": 3.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.0194308757781982,
+    "SEV2": -1.4256808757781982,
+    "SEV3": -0.48818084597587585,
+    "SEV4": -4.331930637359619
+   },
+   "ms": 61.351774000002024
+  },
+  {
+   "id": "test-0096",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the corporate VPN",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.8345541954040527,
+    "SEV2": -2.1314291954040527,
+    "SEV3": -0.44392919540405273,
+    "SEV4": -1.7095541954040527
+   },
+   "ms": 49.822400999971705
+  },
+  {
+   "id": "test-0056",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 23.0,
+    "full_outage": false,
+    "latency_mult": 5.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.568331241607666,
+    "SEV2": -1.599581003189087,
+    "SEV3": -0.2402060180902481,
+    "SEV4": -6.755831241607666
+   },
+   "ms": 47.157529999992676
+  },
+  {
+   "id": "test-0049",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 78.0,
+    "full_outage": false,
+    "latency_mult": 5.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.782278060913086,
+    "SEV2": -2.360403060913086,
+    "SEV3": -0.1260281205177307,
+    "SEV4": -6.688528060913086
+   },
+   "ms": 46.45150100003548
+  },
+  {
+   "id": "test-0173",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "CI (Jenkins)",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -6.12290096282959,
+    "SEV2": -4.68540096282959,
+    "SEV3": -0.013525983318686485,
+    "SEV4": -6.21665096282959
+   },
+   "ms": 45.30720300004987
+  },
+  {
+   "id": "test-0170",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "Grafana",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.4088895320892334,
+    "SEV2": -2.3932645320892334,
+    "SEV3": -0.3307644724845886,
+    "SEV4": -2.2995145320892334
+   },
+   "ms": 44.397306999997
+  },
+  {
+   "id": "test-0114",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "search-api",
+    "error_pct": 8.0,
+    "full_outage": false,
+    "latency_mult": 8.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.642178535461426,
+    "SEV2": -1.7203036546707153,
+    "SEV3": -0.22030368447303772,
+    "SEV4": -4.704678535461426
+   },
+   "ms": 57.77575999996998
+  },
+  {
+   "id": "test-0110",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 3.0,
+    "full_outage": false,
+    "latency_mult": 1.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.582173824310303,
+    "SEV2": -1.4415488243103027,
+    "SEV3": -0.28529879450798035,
+    "SEV4": -6.566548824310303
+   },
+   "ms": 60.51601799998707
+  },
+  {
+   "id": "test-0137",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 2.0,
+    "full_outage": false,
+    "latency_mult": 2.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.8403398990631104,
+    "SEV2": -1.3247148990631104,
+    "SEV3": -0.3403399586677551,
+    "SEV4": -6.8247151374816895
+   },
+   "ms": 45.112786000004235
+  },
+  {
+   "id": "test-0003",
+   "template": "public_bucket",
+   "facts": {
+    "kind": "data_security",
+    "service": "search-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": true
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.4884980916976929,
+    "SEV2": -1.4728730916976929,
+    "SEV3": -1.0197480916976929,
+    "SEV4": -1.6916230916976929
+   },
+   "ms": 45.776743999965674
+  },
+  {
+   "id": "test-0167",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "CI (Jenkins)",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.985476493835449,
+    "SEV2": -2.313601493835449,
+    "SEV3": -0.188601553440094,
+    "SEV4": -3.797976493835449
+   },
+   "ms": 49.18508200000815
+  },
+  {
+   "id": "test-0017",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 85.0,
+    "full_outage": false,
+    "latency_mult": 2.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.4918590784072876,
+    "SEV2": -1.8043590784072876,
+    "SEV3": -0.5387340784072876,
+    "SEV4": -3.616858959197998
+   },
+   "ms": 58.51382400004468
+  },
+  {
+   "id": "test-0179",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the feature-flag dashboard",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.1955206394195557,
+    "SEV2": -2.4923956394195557,
+    "SEV3": -0.17989562451839447,
+    "SEV4": -3.1955206394195557
+   },
+   "ms": 54.27124099998082
+  },
+  {
+   "id": "test-0172",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the on-call paging tool",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.231928586959839,
+    "SEV2": -2.825678586959839,
+    "SEV3": -0.13817860186100006,
+    "SEV4": -3.497553586959839
+   },
+   "ms": 54.85249599996678
+  },
+  {
+   "id": "test-0032",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 69.0,
+    "full_outage": false,
+    "latency_mult": 1.7,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.6832830905914307,
+    "SEV2": -1.2614080905914307,
+    "SEV3": -0.37078309059143066,
+    "SEV4": -6.573907852172852
+   },
+   "ms": 53.14851600002157
+  },
+  {
+   "id": "test-0023",
+   "template": "public_bucket",
+   "facts": {
+    "kind": "data_security",
+    "service": "payments-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": true
+   },
+   "label": "SEV1",
+   "pred": "SEV1",
+   "scores": {
+    "SEV1": -0.9605482220649719,
+    "SEV2": -1.5386731624603271,
+    "SEV3": -1.1949231624603271,
+    "SEV4": -2.304298162460327
+   },
+   "ms": 44.30165499996974
+  },
+  {
+   "id": "test-0015",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 1.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV1",
+   "scores": {
+    "SEV1": -0.7159139513969421,
+    "SEV2": -1.934664011001587,
+    "SEV3": -1.075289011001587,
+    "SEV4": -3.669039011001587
+   },
+   "ms": 56.92503500000612
+  },
+  {
+   "id": "test-0070",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 18.0,
+    "full_outage": false,
+    "latency_mult": 3.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.772216796875,
+    "SEV2": -2.303466558456421,
+    "SEV3": -0.11596664786338806,
+    "SEV4": -6.803466796875
+   },
+   "ms": 47.68459399997482
+  },
+  {
+   "id": "test-0040",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 51.0,
+    "full_outage": false,
+    "latency_mult": 3.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.1885247230529785,
+    "SEV2": -1.485399603843689,
+    "SEV3": -0.31352463364601135,
+    "SEV4": -6.5166497230529785
+   },
+   "ms": 57.33588100002862
+  },
+  {
+   "id": "test-0130",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 0.4,
+    "full_outage": false,
+    "latency_mult": 1.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.3667693138122559,
+    "SEV2": -1.8042693138122559,
+    "SEV3": -0.5698942542076111,
+    "SEV4": -4.210519313812256
+   },
+   "ms": 59.72409100002096
+  },
+  {
+   "id": "test-0091",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 1.5,
+    "full_outage": false,
+    "latency_mult": 6.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.81608247756958,
+    "SEV2": -1.89420747756958,
+    "SEV3": -0.1910824477672577,
+    "SEV4": -6.51920747756958
+   },
+   "ms": 60.034408999968036
+  },
+  {
+   "id": "test-0116",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 4.8,
+    "full_outage": false,
+    "latency_mult": 2.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.922635316848755,
+    "SEV2": -1.2663853168487549,
+    "SEV3": -0.3601352572441101,
+    "SEV4": -7.172635078430176
+   },
+   "ms": 65.4500999999641
+  },
+  {
+   "id": "test-0145",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 0.4,
+    "full_outage": false,
+    "latency_mult": 1.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.7545064687728882,
+    "SEV2": -1.6607564687728882,
+    "SEV3": -0.4732564687728882,
+    "SEV4": -4.270131587982178
+   },
+   "ms": 56.721168000024136
+  },
+  {
+   "id": "test-0122",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 60.0,
+    "full_outage": false,
+    "latency_mult": 1.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.941957950592041,
+    "SEV2": -2.520082950592041,
+    "SEV3": -0.09820787608623505,
+    "SEV4": -5.129457950592041
+   },
+   "ms": 54.136852999988605
+  },
+  {
+   "id": "test-0154",
+   "template": "staging_down",
+   "facts": {
+    "kind": "no_impact",
+    "service": "payments-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.457200050354004,
+    "SEV2": -1.238450050354004,
+    "SEV3": -0.4884501099586487,
+    "SEV4": -4.519700050354004
+   },
+   "ms": 54.73009799999318
+  },
+  {
+   "id": "test-0123",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 2.0,
+    "full_outage": false,
+    "latency_mult": 2.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.958780288696289,
+    "SEV2": -1.146280288696289,
+    "SEV3": -0.41190531849861145,
+    "SEV4": -7.271280288696289
+   },
+   "ms": 52.242046000003484
+  },
+  {
+   "id": "test-0148",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 4.5,
+    "full_outage": false,
+    "latency_mult": 3.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.5402350425720215,
+    "SEV2": -2.4621100425720215,
+    "SEV3": -0.10273510217666626,
+    "SEV4": -6.3839850425720215
+   },
+   "ms": 52.93443200002912
+  },
+  {
+   "id": "test-0126",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "search-api",
+    "error_pct": 15.0,
+    "full_outage": false,
+    "latency_mult": 1.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.994894504547119,
+    "SEV2": -1.7761446237564087,
+    "SEV3": -0.1980195939540863,
+    "SEV4": -5.635519504547119
+   },
+   "ms": 56.51324999996632
+  },
+  {
+   "id": "test-0046",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 64.0,
+    "full_outage": false,
+    "latency_mult": 3.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.303739547729492,
+    "SEV2": -1.5537395477294922,
+    "SEV3": -0.2568644881248474,
+    "SEV4": -6.475614547729492
+   },
+   "ms": 58.930115000009664
+  },
+  {
+   "id": "test-0184",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the feature-flag dashboard",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -7.630988597869873,
+    "SEV2": -5.474738597869873,
+    "SEV3": -0.005988749209791422,
+    "SEV4": -6.662238597869873
+   },
+   "ms": 44.85385599997471
+  },
+  {
+   "id": "test-0146",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 4.8,
+    "full_outage": false,
+    "latency_mult": 2.8,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.135775566101074,
+    "SEV2": -1.3076504468917847,
+    "SEV3": -0.33890044689178467,
+    "SEV4": -6.917025566101074
+   },
+   "ms": 58.85101399996984
+  },
+  {
+   "id": "test-0093",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 0.5,
+    "full_outage": false,
+    "latency_mult": 4.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.5084547996520996,
+    "SEV2": -1.4615797996520996,
+    "SEV3": -0.3053298592567444,
+    "SEV4": -6.6490797996521
+   },
+   "ms": 58.55830100000503
+  },
+  {
+   "id": "test-0067",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 28.0,
+    "full_outage": false,
+    "latency_mult": 5.8,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.203628063201904,
+    "SEV2": -2.1723783016204834,
+    "SEV3": -0.141128271818161,
+    "SEV4": -5.891128063201904
+   },
+   "ms": 58.757068000033996
+  },
+  {
+   "id": "test-0018",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 94.0,
+    "full_outage": false,
+    "latency_mult": 4.7,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.5561727285385132,
+    "SEV2": -1.8999227285385132,
+    "SEV3": -0.49367275834083557,
+    "SEV4": -3.5405478477478027
+   },
+   "ms": 59.07187899998689
+  },
+  {
+   "id": "test-0133",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 0.4,
+    "full_outage": false,
+    "latency_mult": 2.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.0967254638671875,
+    "SEV2": -1.299850583076477,
+    "SEV3": -0.518600583076477,
+    "SEV4": -4.6904754638671875
+   },
+   "ms": 59.80070099997192
+  },
+  {
+   "id": "test-0045",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 78.0,
+    "full_outage": false,
+    "latency_mult": 2.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.281991958618164,
+    "SEV2": -1.9382420778274536,
+    "SEV3": -0.20386706292629242,
+    "SEV4": -5.844491958618164
+   },
+   "ms": 44.40211299998964
+  },
+  {
+   "id": "test-0107",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 4.5,
+    "full_outage": false,
+    "latency_mult": 2.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.917365074157715,
+    "SEV2": -1.8392400741577148,
+    "SEV3": -0.19861507415771484,
+    "SEV4": -6.651740074157715
+   },
+   "ms": 57.383710000010524
+  },
+  {
+   "id": "test-0062",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 3.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.802298545837402,
+    "SEV2": -1.7241735458374023,
+    "SEV3": -0.20854848623275757,
+    "SEV4": -6.380423545837402
+   },
+   "ms": 58.55830299998388
+  },
+  {
+   "id": "test-0191",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the corporate VPN",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.5966391563415527,
+    "SEV2": -2.1747641563415527,
+    "SEV3": -0.39351412653923035,
+    "SEV4": -1.9872641563415527
+   },
+   "ms": 44.558101999996325
+  },
+  {
+   "id": "test-0189",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the admin console",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.91060733795166,
+    "SEV2": -1.8168572187423706,
+    "SEV3": -0.3012322187423706,
+    "SEV4": -3.14498233795166
+   },
+   "ms": 43.66418399996519
+  },
+  {
+   "id": "test-0128",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 3.0,
+    "full_outage": false,
+    "latency_mult": 1.8,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.594112873077393,
+    "SEV2": -2.1409878730773926,
+    "SEV3": -0.14098788797855377,
+    "SEV4": -5.562862873077393
+   },
+   "ms": 57.4628749999988
+  },
+  {
+   "id": "test-0041",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 55.0,
+    "full_outage": false,
+    "latency_mult": 2.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.117067813873291,
+    "SEV2": -1.507692813873291,
+    "SEV3": -0.2733178436756134,
+    "SEV4": -6.554567813873291
+   },
+   "ms": 58.954522999954406
+  },
+  {
+   "id": "test-0010",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 51.0,
+    "full_outage": false,
+    "latency_mult": 5.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.394960403442383,
+    "SEV2": -2.363710403442383,
+    "SEV3": -0.11371029913425446,
+    "SEV4": -6.848085403442383
+   },
+   "ms": 45.550349999984974
+  },
+  {
+   "id": "test-0064",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the admin console",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.314131498336792,
+    "SEV2": -1.423506498336792,
+    "SEV3": -0.4235064685344696,
+    "SEV4": -2.689131498336792
+   },
+   "ms": 42.843646999983775
+  },
+  {
+   "id": "test-0174",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "CI (Jenkins)",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.884824275970459,
+    "SEV2": -2.181699275970459,
+    "SEV3": -0.19732433557510376,
+    "SEV4": -4.572324275970459
+   },
+   "ms": 43.43335099997603
+  },
+  {
+   "id": "test-0104",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 2.0,
+    "full_outage": false,
+    "latency_mult": 3.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.4363460540771484,
+    "SEV2": -1.7332209348678589,
+    "SEV3": -0.3738459348678589,
+    "SEV4": -3.0457210540771484
+   },
+   "ms": 58.16466300001366
+  },
+  {
+   "id": "test-0157",
+   "template": "staging_down",
+   "facts": {
+    "kind": "no_impact",
+    "service": "recommendations-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.080437660217285,
+    "SEV2": -2.6116878986358643,
+    "SEV3": -0.1273127943277359,
+    "SEV4": -3.5335628986358643
+   },
+   "ms": 44.08604299999297
+  },
+  {
+   "id": "test-0094",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "Grafana",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.3153269290924072,
+    "SEV2": -2.1903269290924072,
+    "SEV3": -0.2684519290924072,
+    "SEV4": -2.4403269290924072
+   },
+   "ms": 44.292473999973936
+  },
+  {
+   "id": "test-0164",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the feature-flag dashboard",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -6.79099178314209,
+    "SEV2": -5.11911678314209,
+    "SEV3": -0.009741624817252159,
+    "SEV4": -5.96286678314209
+   },
+   "ms": 43.94285000000764
+  },
+  {
+   "id": "test-0166",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "Grafana",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.3334710597991943,
+    "SEV2": -2.3490960597991943,
+    "SEV3": -0.2084711641073227,
+    "SEV4": -2.8647210597991943
+   },
+   "ms": 42.949630999999044
+  },
+  {
+   "id": "test-0034",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 3.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.7794926166534424,
+    "SEV2": -2.5607426166534424,
+    "SEV3": -0.10761750489473343,
+    "SEV4": -6.248242378234863
+   },
+   "ms": 42.91017100001682
+  },
+  {
+   "id": "test-0153",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the admin console",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -6.743819236755371,
+    "SEV2": -5.025069236755371,
+    "SEV3": -0.009444203227758408,
+    "SEV4": -6.415694236755371
+   },
+   "ms": 43.69326200003343
+  },
+  {
+   "id": "test-0044",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 1.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.1232540607452393,
+    "SEV2": -2.1388790607452393,
+    "SEV3": -0.21700406074523926,
+    "SEV4": -3.4045040607452393
+   },
+   "ms": 43.96105000000716
+  },
+  {
+   "id": "test-0087",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 44.0,
+    "full_outage": false,
+    "latency_mult": 4.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.751231670379639,
+    "SEV2": -2.1106064319610596,
+    "SEV3": -0.14185646176338196,
+    "SEV4": -6.016856670379639
+   },
+   "ms": 59.895437000022866
+  },
+  {
+   "id": "test-0011",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 85.0,
+    "full_outage": false,
+    "latency_mult": 1.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.2474560737609863,
+    "SEV2": -1.9662060737609863,
+    "SEV3": -0.20058104395866394,
+    "SEV4": -5.856831073760986
+   },
+   "ms": 46.30524199995989
+  },
+  {
+   "id": "test-0061",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 33.0,
+    "full_outage": false,
+    "latency_mult": 1.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.618946552276611,
+    "SEV2": -2.4470713138580322,
+    "SEV3": -0.10332140326499939,
+    "SEV4": -6.353321552276611
+   },
+   "ms": 44.50440000005074
+  },
+  {
+   "id": "test-0054",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 50.0,
+    "full_outage": false,
+    "latency_mult": 4.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.763082504272461,
+    "SEV2": -1.575582504272461,
+    "SEV3": -0.2630825340747833,
+    "SEV4": -6.716207504272461
+   },
+   "ms": 57.719512999995004
+  },
+  {
+   "id": "test-0198",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the internal wiki",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.050588130950928,
+    "SEV2": -2.7068381309509277,
+    "SEV3": -0.17558808624744415,
+    "SEV4": -2.5662131309509277
+   },
+   "ms": 44.39469999999801
+  },
+  {
+   "id": "test-0163",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the deploy pipeline",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.3200883865356445,
+    "SEV2": -4.1169633865356445,
+    "SEV3": -0.023213300853967667,
+    "SEV4": -6.3513383865356445
+   },
+   "ms": 43.472671000017726
+  },
+  {
+   "id": "test-0057",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 44.0,
+    "full_outage": false,
+    "latency_mult": 4.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.2495436668395996,
+    "SEV2": -1.8432936668395996,
+    "SEV3": -0.6245437264442444,
+    "SEV4": -3.9370436668395996
+   },
+   "ms": 59.209421999980805
+  },
+  {
+   "id": "test-0109",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 0.8,
+    "full_outage": false,
+    "latency_mult": 2.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.185912609100342,
+    "SEV2": -2.3265373706817627,
+    "SEV3": -0.12341238558292389,
+    "SEV4": -5.732787609100342
+   },
+   "ms": 46.27436399999851
+  },
+  {
+   "id": "test-0075",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the admin console",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.9213716983795166,
+    "SEV2": -1.7182466983795166,
+    "SEV3": -0.3276216387748718,
+    "SEV4": -3.0776216983795166
+   },
+   "ms": 43.27214699998194
+  },
+  {
+   "id": "test-0193",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the admin console",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -6.000675201416016,
+    "SEV2": -4.547550201416016,
+    "SEV3": -0.0163002610206604,
+    "SEV4": -5.781925201416016
+   },
+   "ms": 50.50170999999182
+  },
+  {
+   "id": "test-0119",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 8.0,
+    "full_outage": false,
+    "latency_mult": 1.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.111617088317871,
+    "SEV2": -2.689742088317871,
+    "SEV3": -0.0803670883178711,
+    "SEV4": -5.720992088317871
+   },
+   "ms": 42.48341900000696
+  },
+  {
+   "id": "test-0016",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 52.0,
+    "full_outage": false,
+    "latency_mult": 4.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.6561777591705322,
+    "SEV2": -2.2655527591705322,
+    "SEV3": -0.1405528485774994,
+    "SEV4": -6.499927997589111
+   },
+   "ms": 57.457143000021915
+  },
+  {
+   "id": "test-0031",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 51.0,
+    "full_outage": false,
+    "latency_mult": 3.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.2622592449188232,
+    "SEV2": -1.8716342449188232,
+    "SEV3": -0.21538418531417847,
+    "SEV4": -6.449759006500244
+   },
+   "ms": 45.463965000010376
+  },
+  {
+   "id": "test-0101",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "recommendations-api",
+    "error_pct": 30.0,
+    "full_outage": false,
+    "latency_mult": 2.7,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.548157691955566,
+    "SEV2": -1.6262826919555664,
+    "SEV3": -0.2356577217578888,
+    "SEV4": -5.923157691955566
+   },
+   "ms": 43.98230600003217
+  },
+  {
+   "id": "test-0161",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the deploy pipeline",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.681318283081055,
+    "SEV2": -3.6031932830810547,
+    "SEV3": -0.04069320112466812,
+    "SEV4": -5.696943283081055
+   },
+   "ms": 42.66771499999322
+  },
+  {
+   "id": "test-0086",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 25.0,
+    "full_outage": false,
+    "latency_mult": 2.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.8737728595733643,
+    "SEV2": -1.4050229787826538,
+    "SEV3": -0.3112729489803314,
+    "SEV4": -6.623773097991943
+   },
+   "ms": 45.47737799998686
+  },
+  {
+   "id": "test-0143",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 0.8,
+    "full_outage": false,
+    "latency_mult": 2.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.9344871044158936,
+    "SEV2": -2.2313621044158936,
+    "SEV3": -0.13761208951473236,
+    "SEV4": -6.4344868659973145
+   },
+   "ms": 44.809754000027624
+  },
+  {
+   "id": "test-0084",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 36.0,
+    "full_outage": false,
+    "latency_mult": 3.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.8786094188690186,
+    "SEV2": -1.3473594188690186,
+    "SEV3": -0.3317343592643738,
+    "SEV4": -6.3786091804504395
+   },
+   "ms": 44.558203000008234
+  },
+  {
+   "id": "test-0162",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the on-call paging tool",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.7703230381011963,
+    "SEV2": -2.7859480381011963,
+    "SEV3": -0.09844795614480972,
+    "SEV4": -4.707822799682617
+   },
+   "ms": 43.532486999993125
+  },
+  {
+   "id": "test-0038",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 3.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.751976251602173,
+    "SEV2": -2.392601251602173,
+    "SEV3": -0.14260119199752808,
+    "SEV4": -4.017601013183594
+   },
+   "ms": 42.85423599998239
+  },
+  {
+   "id": "test-0156",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the data warehouse",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.020758628845215,
+    "SEV2": -2.614508628845215,
+    "SEV3": -0.4270087480545044,
+    "SEV4": -1.4895087480545044
+   },
+   "ms": 44.02072000004864
+  },
+  {
+   "id": "test-0190",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "Grafana",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.431674480438232,
+    "SEV2": -4.634799480438232,
+    "SEV3": -0.02542455680668354,
+    "SEV4": -4.509799480438232
+   },
+   "ms": 44.331845999977304
+  },
+  {
+   "id": "test-0019",
+   "template": "public_bucket",
+   "facts": {
+    "kind": "data_security",
+    "service": "recommendations-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": true
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.700323462486267,
+    "SEV2": -1.497198462486267,
+    "SEV3": -0.8565734624862671,
+    "SEV4": -1.778448462486267
+   },
+   "ms": 43.81362200001604
+  },
+  {
+   "id": "test-0001",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 59.0,
+    "full_outage": false,
+    "latency_mult": 3.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.627969741821289,
+    "SEV2": -2.002969980239868,
+    "SEV3": -0.15921998023986816,
+    "SEV4": -6.002969741821289
+   },
+   "ms": 57.048234000035336
+  },
+  {
+   "id": "test-0183",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the internal wiki",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.0677762031555176,
+    "SEV2": -2.6302762031555176,
+    "SEV3": -0.28652629256248474,
+    "SEV4": -2.0365262031555176
+   },
+   "ms": 44.105536000017764
+  },
+  {
+   "id": "test-0144",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "search-api",
+    "error_pct": 8.0,
+    "full_outage": false,
+    "latency_mult": 6.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.95407247543335,
+    "SEV2": -2.3603227138519287,
+    "SEV3": -0.11032265424728394,
+    "SEV4": -5.81344747543335
+   },
+   "ms": 44.4695190000175
+  },
+  {
+   "id": "test-0035",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 3.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.091159820556641,
+    "SEV2": -2.6849098205566406,
+    "SEV3": -0.09115983545780182,
+    "SEV4": -6.138034820556641
+   },
+   "ms": 42.686405000040395
+  },
+  {
+   "id": "test-0102",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "search-api",
+    "error_pct": 60.0,
+    "full_outage": false,
+    "latency_mult": 6.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.439281463623047,
+    "SEV2": -2.454906463623047,
+    "SEV3": -0.1111564040184021,
+    "SEV4": -4.892406463623047
+   },
+   "ms": 57.133097000019006
+  },
+  {
+   "id": "test-0178",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the on-call paging tool",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -7.007326126098633,
+    "SEV2": -5.397951126098633,
+    "SEV3": -0.00732628395780921,
+    "SEV4": -6.288576126098633
+   },
+   "ms": 45.67252399999688
+  },
+  {
+   "id": "test-0033",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 97.0,
+    "full_outage": false,
+    "latency_mult": 3.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.113198757171631,
+    "SEV2": -2.191323757171631,
+    "SEV3": -0.12882380187511444,
+    "SEV4": -5.785073757171631
+   },
+   "ms": 58.76573099999405
+  },
+  {
+   "id": "test-0181",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the corporate VPN",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.073181629180908,
+    "SEV2": -2.010681629180908,
+    "SEV3": -0.260681688785553,
+    "SEV4": -3.010681629180908
+   },
+   "ms": 44.827367000038976
+  },
+  {
+   "id": "test-0025",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 93.0,
+    "full_outage": false,
+    "latency_mult": 2.7,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.894439458847046,
+    "SEV2": -1.660064458847046,
+    "SEV3": -0.2381894886493683,
+    "SEV4": -6.535064697265625
+   },
+   "ms": 51.00605999996333
+  },
+  {
+   "id": "test-0004",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 3.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.874908685684204,
+    "SEV2": -2.093658685684204,
+    "SEV3": -0.3280336558818817,
+    "SEV4": -5.796783447265625
+   },
+   "ms": 42.4310250000417
+  },
+  {
+   "id": "test-0196",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the data warehouse",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -6.605353355407715,
+    "SEV2": -5.105353355407715,
+    "SEV3": -0.011603484861552715,
+    "SEV4": -5.495978355407715
+   },
+   "ms": 43.73599500002001
+  },
+  {
+   "id": "test-0169",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the corporate VPN",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.785693645477295,
+    "SEV2": -3.629443645477295,
+    "SEV3": -0.0513186976313591,
+    "SEV4": -4.191943645477295
+   },
+   "ms": 43.11214500000915
+  },
+  {
+   "id": "test-0085",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 15.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.746568441390991,
+    "SEV2": -1.5278185606002808,
+    "SEV3": -0.2778185307979584,
+    "SEV4": -6.24656867980957
+   },
+   "ms": 45.83728599999404
+  },
+  {
+   "id": "test-0132",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 3.0,
+    "full_outage": false,
+    "latency_mult": 1.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.42766809463501,
+    "SEV2": -1.3964182138442993,
+    "SEV3": -0.3026682138442993,
+    "SEV4": -6.36516809463501
+   },
+   "ms": 59.11224400000492
+  },
+  {
+   "id": "test-0147",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 2.0,
+    "full_outage": false,
+    "latency_mult": 1.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.564779281616211,
+    "SEV2": -1.1585294008255005,
+    "SEV3": -0.3929044008255005,
+    "SEV4": -7.533529281616211
+   },
+   "ms": 59.56646999999293
+  },
+  {
+   "id": "test-0127",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 0.4,
+    "full_outage": false,
+    "latency_mult": 1.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.5445375442504883,
+    "SEV2": -1.8257875442504883,
+    "SEV3": -0.29453760385513306,
+    "SEV4": -4.169537544250488
+   },
+   "ms": 60.765174999971805
+  },
+  {
+   "id": "test-0081",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 1.5,
+    "full_outage": false,
+    "latency_mult": 3.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.92561936378479,
+    "SEV2": -1.81624436378479,
+    "SEV3": -0.39436936378479004,
+    "SEV4": -4.050619125366211
+   },
+   "ms": 61.584670000002006
+  },
+  {
+   "id": "test-0060",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 0.5,
+    "full_outage": false,
+    "latency_mult": 6.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.145815372467041,
+    "SEV2": -2.411440372467041,
+    "SEV3": -0.11456535756587982,
+    "SEV4": -5.911440372467041
+   },
+   "ms": 51.05448099999421
+  },
+  {
+   "id": "test-0186",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the on-call paging tool",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -7.226511478424072,
+    "SEV2": -5.164011478424072,
+    "SEV3": -0.00776132196187973,
+    "SEV4": -6.664011478424072
+   },
+   "ms": 42.68245800000159
+  },
+  {
+   "id": "test-0111",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "search-api",
+    "error_pct": 8.0,
+    "full_outage": false,
+    "latency_mult": 3.8,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.7018649578094482,
+    "SEV2": -1.5456149578094482,
+    "SEV3": -0.576865017414093,
+    "SEV4": -3.1549899578094482
+   },
+   "ms": 58.00998099999788
+  },
+  {
+   "id": "test-0052",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the deploy pipeline",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": false,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.4787487983703613,
+    "SEV2": -1.8068739175796509,
+    "SEV3": -0.2599988877773285,
+    "SEV4": -3.3849987983703613
+   },
+   "ms": 44.89608199997974
+  },
+  {
+   "id": "test-0194",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the feature-flag dashboard",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -7.025016784667969,
+    "SEV2": -5.009391784667969,
+    "SEV3": -0.009391888044774532,
+    "SEV4": -6.337516784667969
+   },
+   "ms": 42.83971099999917
+  },
+  {
+   "id": "test-0037",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 68.0,
+    "full_outage": false,
+    "latency_mult": 3.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.635613441467285,
+    "SEV2": -1.9793634414672852,
+    "SEV3": -0.18248847126960754,
+    "SEV4": -6.088738441467285
+   },
+   "ms": 58.434492999992926
+  },
+  {
+   "id": "test-0020",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 65.0,
+    "full_outage": false,
+    "latency_mult": 4.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.442627191543579,
+    "SEV2": -1.9582520723342896,
+    "SEV3": -0.19262710213661194,
+    "SEV4": -6.161376953125
+   },
+   "ms": 45.30375899997807
+  },
+  {
+   "id": "test-0042",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 1.8,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.1233421564102173,
+    "SEV2": -2.1077170372009277,
+    "SEV3": -0.6077171564102173,
+    "SEV4": -4.748342037200928
+   },
+   "ms": 45.54328599999735
+  },
+  {
+   "id": "test-0072",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 17.0,
+    "full_outage": false,
+    "latency_mult": 2.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.8394618034362793,
+    "SEV2": -1.5738368034362793,
+    "SEV3": -0.2613368630409241,
+    "SEV4": -6.714461803436279
+   },
+   "ms": 58.64181100002952
+  },
+  {
+   "id": "test-0082",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 1.5,
+    "full_outage": false,
+    "latency_mult": 8.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.7305901050567627,
+    "SEV2": -2.2774651050567627,
+    "SEV3": -0.13684003055095673,
+    "SEV4": -6.605589866638184
+   },
+   "ms": 58.59260599999061
+  },
+  {
+   "id": "test-0125",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "search-api",
+    "error_pct": 2.0,
+    "full_outage": false,
+    "latency_mult": 2.4,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.4167633056640625,
+    "SEV2": -1.5573883056640625,
+    "SEV3": -0.2605133056640625,
+    "SEV4": -5.0261383056640625
+   },
+   "ms": 59.25861799994436
+  },
+  {
+   "id": "test-0009",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 52.0,
+    "full_outage": false,
+    "latency_mult": 3.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.530126571655273,
+    "SEV2": -2.4207515716552734,
+    "SEV3": -0.10825155675411224,
+    "SEV4": -5.827001571655273
+   },
+   "ms": 51.391249000005246
+  },
+  {
+   "id": "test-0165",
+   "template": "staging_down",
+   "facts": {
+    "kind": "no_impact",
+    "service": "search-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.375640392303467,
+    "SEV2": -2.281890392303467,
+    "SEV3": -0.26626548171043396,
+    "SEV4": -2.328765392303467
+   },
+   "ms": 41.43291200000476
+  },
+  {
+   "id": "test-0177",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the data warehouse",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.655834674835205,
+    "SEV2": -2.390209674835205,
+    "SEV3": -0.35895979404449463,
+    "SEV4": -1.9683347940444946
+   },
+   "ms": 42.52100100001144
+  },
+  {
+   "id": "test-0151",
+   "template": "staging_down",
+   "facts": {
+    "kind": "no_impact",
+    "service": "notifications-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.488079309463501,
+    "SEV2": -2.581829309463501,
+    "SEV3": -0.1912042498588562,
+    "SEV4": -2.691204309463501
+   },
+   "ms": 42.72574999998824
+  },
+  {
+   "id": "test-0168",
+   "template": "staging_down",
+   "facts": {
+    "kind": "no_impact",
+    "service": "checkout-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.8832060098648071,
+    "SEV2": -1.8675810098648071,
+    "SEV3": -0.39883100986480713,
+    "SEV4": -3.8050808906555176
+   },
+   "ms": 43.422264000014366
+  },
+  {
+   "id": "test-0121",
+   "template": "autoscaler_stuck",
+   "facts": {
+    "kind": "service",
+    "service": "notifications-api",
+    "error_pct": 8.0,
+    "full_outage": false,
+    "latency_mult": 3.9,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -5.125078201293945,
+    "SEV2": -2.7657032012939453,
+    "SEV3": -0.07820317894220352,
+    "SEV4": -5.062578201293945
+   },
+   "ms": 58.61697699998558
+  },
+  {
+   "id": "test-0021",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 100.0,
+    "full_outage": true,
+    "latency_mult": 2.5,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV1",
+   "scores": {
+    "SEV1": -0.7276487946510315,
+    "SEV2": -2.1963987350463867,
+    "SEV3": -0.9776487946510315,
+    "SEV4": -3.5245237350463867
+   },
+   "ms": 60.71709500002953
+  },
+  {
+   "id": "test-0063",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 44.0,
+    "full_outage": false,
+    "latency_mult": 4.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.61515474319458,
+    "SEV2": -1.89640474319458,
+    "SEV3": -0.1776547133922577,
+    "SEV4": -5.89640474319458
+   },
+   "ms": 59.43715600000132
+  },
+  {
+   "id": "test-0030",
+   "template": "public_bucket",
+   "facts": {
+    "kind": "data_security",
+    "service": "checkout-api",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": true
+   },
+   "label": "SEV1",
+   "pred": "SEV1",
+   "scores": {
+    "SEV1": -0.8120879530906677,
+    "SEV2": -1.7027130126953125,
+    "SEV3": -1.2652130126953125,
+    "SEV4": -2.3902130126953125
+   },
+   "ms": 45.006715999988955
+  },
+  {
+   "id": "test-0160",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the admin console",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -2.5045714378356934,
+    "SEV2": -1.8014464378356934,
+    "SEV3": -0.31707149744033813,
+    "SEV4": -3.6920714378356934
+   },
+   "ms": 44.06129899996358
+  },
+  {
+   "id": "test-0115",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 0.4,
+    "full_outage": false,
+    "latency_mult": 2.1,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.84710168838501,
+    "SEV2": -2.487726926803589,
+    "SEV3": -0.09710182994604111,
+    "SEV4": -6.45647668838501
+   },
+   "ms": 57.01082699999915
+  },
+  {
+   "id": "test-0036",
+   "template": "queue_backlog",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 61.0,
+    "full_outage": false,
+    "latency_mult": 3.3,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.877866268157959,
+    "SEV2": -1.0653663873672485,
+    "SEV3": -0.45599138736724854,
+    "SEV4": -7.049741268157959
+   },
+   "ms": 46.88699000001861
+  },
+  {
+   "id": "test-0098",
+   "template": "cache_stampede",
+   "facts": {
+    "kind": "service",
+    "service": "cart-api",
+    "error_pct": 32.0,
+    "full_outage": false,
+    "latency_mult": 5.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV2",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.710960388183594,
+    "SEV2": -2.179710626602173,
+    "SEV3": -0.13283556699752808,
+    "SEV4": -6.070335388183594
+   },
+   "ms": 58.86364200000571
+  },
+  {
+   "id": "test-0112",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "payments-api",
+    "error_pct": 0.8,
+    "full_outage": false,
+    "latency_mult": 1.6,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV3",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.3649141788482666,
+    "SEV2": -1.3180391788482666,
+    "SEV3": -0.7711642384529114,
+    "SEV4": -4.239914417266846
+   },
+   "ms": 59.90058200001158
+  },
+  {
+   "id": "test-0197",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the corporate VPN",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -4.247628211975098,
+    "SEV2": -3.6538782119750977,
+    "SEV3": -0.07575313746929169,
+    "SEV4": -3.4195032119750977
+   },
+   "ms": 45.45414099999334
+  },
+  {
+   "id": "test-0026",
+   "template": "cert_expiry",
+   "facts": {
+    "kind": "service",
+    "service": "checkout-api",
+    "error_pct": 96.0,
+    "full_outage": false,
+    "latency_mult": 4.2,
+    "internal_down": false,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV1",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -1.4325735569000244,
+    "SEV2": -1.9950735569000244,
+    "SEV3": -0.5106986165046692,
+    "SEV4": -3.6825735569000244
+   },
+   "ms": 58.85322899996481
+  },
+  {
+   "id": "test-0158",
+   "template": "pipeline_broken",
+   "facts": {
+    "kind": "internal",
+    "service": "the internal wiki",
+    "error_pct": 0.0,
+    "full_outage": false,
+    "latency_mult": 1.0,
+    "internal_down": true,
+    "workaround": true,
+    "data_loss_or_exposure": false
+   },
+   "label": "SEV4",
+   "pred": "SEV3",
+   "scores": {
+    "SEV1": -3.6439716815948486,
+    "SEV2": -2.5658466815948486,
+    "SEV3": -0.15959666669368744,
+    "SEV4": -3.1127216815948486
+   },
+   "ms": 45.61265500001355
+  }
+ ]
+}

@@ -14,7 +14,7 @@ It's built in three stages, and each one can be measured against the others:
 | 1. Basic RAG | Chunking, local embeddings, vector / BM25 / hybrid retrieval, a report checked against a schema, and a **citation allow-list** enforced in code | [docs/retrieval.md](docs/retrieval.md), [docs/generation-and-validation.md](docs/generation-and-validation.md) |
 | 2. Agentic workflow | The model chooses to *draft*, *rewrite the query and retry once*, or *ask one clarifying question*. The app enforces every limit. Each step shows in the UI | [docs/agent.md](docs/agent.md) |
 | 3. Evaluation | 32 labeled cases; the same model compared with no retrieval, with RAG, and as an agent; LLM-as-judge for claim support; bootstrap CIs | [docs/evaluation.md](docs/evaluation.md), [data/eval/README.md](data/eval/README.md) |
-| 4. QLoRA | A 1.5B open model fine-tuned as a severity classifier: 1,360 rubric-labelled incidents split by scenario template, 4-bit QLoRA on a free Colab T4, compared with the same model zero-shot (28% baseline) | [finetune/README.md](finetune/README.md), [finetune/results/](finetune/results/) |
+| 4. QLoRA | A 1.5B open model fine-tuned as a severity classifier: 1,360 rubric-labelled incidents split by scenario template, 4-bit QLoRA on a free Colab T4: **28% → 88.5%** exact severity versus the same model zero-shot | [finetune/README.md](finetune/README.md), [finetune/results/](finetune/results/) |
 
 ![Triagent: agent-mode triage of a checkout outage, with severity, cited causes and next steps, the pipeline trace and the evidence](docs/images/triagent-report.png)
 
@@ -235,6 +235,22 @@ ollama pull qwen2.5:3b
 LLM_PROVIDER=openai_compat OPENAI_MODEL=qwen2.5:3b python -m eval.run_eval --no-judge
 python -m eval.compare_models eval/results/runs/<gemini-run> eval/results/runs/<qwen-run>
 ```
+
+### Fine-tuning a small model (QLoRA)
+
+Severity is a stable rubric, so it can be taught rather than prompted. Qwen2.5-1.5B-Instruct
+was fine-tuned with 4-bit QLoRA on 1,000 generated incidents whose labels are computed from
+POL-SEV-001. It was tested on 200 incidents from scenario templates it never saw.
+
+| | Zero-shot | QLoRA (11 min, free T4) |
+|---|---|---|
+| Exact severity [95% CI] | 28.0% [22.0–34.5] | **88.5%** [84.0–93.0] |
+| Within one level | 78.0% | 100% |
+| Macro-F1 | 0.16 | 0.89 |
+
+The gain is +60.5 points (paired 95% CI +52.5 to +68.5). Most remaining errors sit on the
+SEV2/SEV3 line for revenue paths. One unseen scenario (a staging outage) transfers badly:
+1 of 6 correct. See [finetune/results/](finetune/results/README.md).
 
 ### Prompt-injection red team
 

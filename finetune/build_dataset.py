@@ -490,10 +490,10 @@ def leakage_report(splits: dict[str, list[dict]], eval_cases: list[str]) -> dict
         t = tokens(r["incident"])
         out["test_vs_train"] = max(out["test_vs_train"], max(jaccard(t, x) for x in train))
         out["test_vs_eval_cases"] = max(out["test_vs_eval_cases"],
-                                        max(jaccard(t, c) for c in cases))
+                                        max((jaccard(t, c) for c in cases), default=0.0))
     for t in train:
         out["train_vs_eval_cases"] = max(out["train_vs_eval_cases"],
-                                         max(jaccard(t, c) for c in cases))
+                                         max((jaccard(t, c) for c in cases), default=0.0))
     return {k: round(v, 3) for k, v in out.items()}
 
 
@@ -507,8 +507,9 @@ def build(out_dir: Path = OUT_DIR, seed: int = SEED) -> dict[str, Any]:
             for row in rows:
                 f.write(json.dumps({**row, "prompt": build_prompt(policy, row["incident"])},
                                    ensure_ascii=False) + "\n")
-    cases = [json.loads(x)["incident"] for x in
-             Path("data/eval/cases.jsonl").read_text(encoding="utf-8").splitlines() if x]
+    cases_path = Path("data/eval/cases.jsonl")  # absent in the Colab bundle: no overlap check
+    lines = cases_path.read_text(encoding="utf-8").splitlines() if cases_path.exists() else []
+    cases = [json.loads(x)["incident"] for x in lines if x]
     stats = {
         "seed": seed,
         "sizes": {s: len(r) for s, r in splits.items()},

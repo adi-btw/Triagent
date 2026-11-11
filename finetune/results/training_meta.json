@@ -1,0 +1,13 @@
+{
+  "base": "Qwen/Qwen2.5-1.5B-Instruct",
+  "quantized_4bit": true,
+  "rank": 16,
+  "lr": 0.0002,
+  "epochs": 2,
+  "train_rows": 1000,
+  "val_rows": 160,
+  "train_minutes": 11.1,
+  "val_loss": 0.16932369768619537,
+  "gpu": "Tesla T4",
+  "trainable_params": 18464768
+}

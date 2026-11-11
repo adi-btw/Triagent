@@ -4,5 +4,4 @@
 transformers==4.46.3
 peft==0.13.2
 accelerate==1.1.1
-datasets==3.1.0
-bitsandbytes==0.45.0; sys_platform == "linux"   # 4-bit kernels, CUDA only
+bitsandbytes>=0.45; sys_platform == "linux"   # 4-bit kernels, CUDA only; unpinned to match the CUDA build

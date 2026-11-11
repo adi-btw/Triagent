@@ -76,7 +76,6 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
 
     import torch
-    from datasets import Dataset
     from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
     from transformers import (
         AutoModelForCausalLM,
@@ -112,9 +111,10 @@ def main(argv: list[str] | None = None) -> int:
     trainable, total = model.get_nb_trainable_parameters()
     print(f"trainable params: {trainable:,} of {total:,} ({trainable / total:.2%})")
 
-    def ds(split: str) -> Dataset:
+    def ds(split: str) -> list[dict[str, list[int]]]:
+        # A plain list is a valid map-style dataset for Trainer; no `datasets` dependency.
         rows = load_split(args.data / f"{split}.jsonl", args.limit)
-        return Dataset.from_list([encode(tok, r, args.max_len) for r in rows])
+        return [encode(tok, r, args.max_len) for r in rows]
 
     train, val = ds("train"), ds("val")
     targs = TrainingArguments(
