@@ -1,6 +1,9 @@
 # Triagent
 
 [![CI](https://github.com/adi-btw/triagent/actions/workflows/ci.yml/badge.svg)](https://github.com/adi-btw/triagent/actions/workflows/ci.yml)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://triagent-duer.onrender.com/?sample=checkout&mode=agent)
+
+**Live demo:** [triagent-duer.onrender.com](https://triagent-duer.onrender.com/?sample=checkout&mode=agent), which opens a finished agent report for a checkout outage. It's free hosting, so the first visit after a quiet spell can take up to a minute to wake up.
 
 **Evidence-grounded incident triage.** Paste an error report or a short log excerpt. Triagent searches a corpus of synthetic runbooks
 and past incident reports, and returns a **structured triage report**: severity (SEV1–4), likely causes,
@@ -98,7 +101,8 @@ mode with no API key**, so hosting it costs nothing. It replays recorded sample 
 - Each visitor gets 20 requests an hour.
 - A hard daily cap limits how many calls can reach the model.
 
-`/?sample=checkout&mode=agent` deep-links straight to a finished report. See [docs/deploy.md](docs/deploy.md).
+It's live at **https://triagent-duer.onrender.com** on Render's free plan. `/?sample=checkout&mode=agent`
+deep-links straight to a finished report. See [docs/deploy.md](docs/deploy.md).
 
 ## Continuous integration
 
